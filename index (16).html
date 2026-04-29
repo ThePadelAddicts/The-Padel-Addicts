@@ -1,0 +1,2163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Padel Addicts</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blue:#1565C0;--blue-dark:#0D47A1;--blue-deep:#0a3a8a;
+  --yellow:#E6D832;--yellow2:#c9bc2a;
+  --white:#fff;--white80:rgba(255,255,255,.8);--white50:rgba(255,255,255,.5);
+  --white20:rgba(255,255,255,.2);--white10:rgba(255,255,255,.1);--white06:rgba(255,255,255,.06);
+  --border:rgba(255,255,255,.14);--border2:rgba(255,255,255,.25);
+  --red:#ff5555;--green:#4caf50;
+  --r:12px;--rl:18px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:linear-gradient(160deg,var(--blue-deep) 0%,var(--blue) 60%,var(--blue-dark) 100%);background-attachment:fixed;color:var(--white);font-family:"DM Sans",sans-serif;font-size:15px;line-height:1.6;min-height:100vh;}
+::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:var(--blue-dark);}::-webkit-scrollbar-thumb{background:var(--white20);border-radius:2px;}
+
+/* LOADER */
+#loader{position:fixed;inset:0;background:var(--blue-dark);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;}
+#loader img{width:80px;border-radius:18px;border:3px solid var(--white20);box-shadow:0 8px 32px rgba(0,0,0,.3);}
+#loader .logo-text{font-family:"Bebas Neue",sans-serif;font-size:42px;letter-spacing:4px;color:var(--yellow);}
+.spin{width:20px;height:20px;border:2px solid var(--white20);border-top-color:var(--yellow);border-radius:50%;animation:spin .6s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* HERO */
+.hero{position:relative;overflow:hidden;padding:40px 20px 32px;text-align:center;border-bottom:1px solid var(--border);}
+.hero::before{content:"";position:absolute;top:-80px;left:50%;transform:translateX(-50%);width:600px;height:400px;background:radial-gradient(ellipse,rgba(230,216,50,.1) 0%,transparent 70%);pointer-events:none;}
+.hero-logo{width:88px;height:88px;border-radius:20px;object-fit:cover;margin:0 auto 14px;display:block;border:3px solid var(--white20);box-shadow:0 8px 32px rgba(0,0,0,.3);}
+.hero-eyebrow{font-family:"DM Mono",monospace;font-size:10px;letter-spacing:3px;color:var(--yellow);text-transform:uppercase;margin-bottom:8px;}
+.hero-title{font-family:"Bebas Neue",sans-serif;font-size:clamp(46px,10vw,84px);letter-spacing:4px;line-height:.9;color:var(--white);margin-bottom:6px;}
+.hero-title span{color:var(--yellow);}
+.hero-sub{font-size:11px;color:var(--white50);letter-spacing:2px;text-transform:uppercase;margin-bottom:24px;}
+.hero-stats{display:flex;justify-content:center;background:rgba(0,0,0,.18);border-radius:14px;max-width:480px;margin:0 auto;padding:4px;}
+.hstat{flex:1;text-align:center;padding:12px 6px;border-right:1px solid var(--border);}
+.hstat:last-child{border-right:none;}
+.hstat-n{font-family:"Bebas Neue",sans-serif;font-size:28px;color:var(--yellow);line-height:1;}
+.hstat-l{font-size:10px;color:var(--white50);letter-spacing:1px;text-transform:uppercase;margin-top:2px;}
+
+/* TOP BAR */
+.topbar{position:sticky;top:0;z-index:100;background:rgba(13,71,161,.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+.topbar-inner{display:flex;align-items:center;max-width:960px;margin:0 auto;padding:0 14px;}
+.nav{display:flex;overflow-x:auto;scrollbar-width:none;flex:1;}
+.nav::-webkit-scrollbar{display:none;}
+.nav-btn{flex-shrink:0;padding:14px 18px;font-family:"DM Sans",sans-serif;font-size:13px;font-weight:500;color:var(--white50);background:none;border:none;cursor:pointer;letter-spacing:.5px;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;}
+.nav-btn:hover{color:var(--white);}
+.nav-btn.active{color:var(--yellow);border-bottom-color:var(--yellow);}
+/* top-left auth area */
+.nav-auth{flex-shrink:0;display:flex;align-items:center;gap:8px;padding:6px 12px 6px 0;border-right:1px solid var(--border);}
+.nav-auth-btn{padding:6px 14px;font-family:"DM Sans",sans-serif;font-size:12px;font-weight:600;border-radius:8px;border:1px solid var(--border2);background:var(--white10);color:var(--white);cursor:pointer;transition:all .15s;white-space:nowrap;}
+.nav-auth-btn:hover{background:var(--white20);}
+.nav-auth-btn.primary{background:var(--yellow);color:#000;border-color:var(--yellow);}
+.nav-auth-btn.primary:hover{background:var(--yellow2);}
+.nav-auth-btn.admin-active{background:rgba(230,216,50,.15);color:var(--yellow);border-color:rgba(230,216,50,.3);}
+.nav-user-name{font-size:12px;font-weight:600;color:var(--white);max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+@media(max-width:400px){.nav-user-name{display:none;}}
+.nav-avatar{width:28px;height:28px;border-radius:8px;background:rgba(230,216,50,.2);display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;border:1px solid rgba(230,216,50,.3);}
+/* keep old classes for compat */
+.nav-admin{display:none;}
+.nav-user-badge{display:none;}
+
+/* MAIN */
+.main{max-width:960px;margin:0 auto;padding:28px 14px 80px;}
+.section{display:none;}
+.section.active{display:block;}
+.sec-header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:22px;gap:10px;flex-wrap:wrap;}
+.sec-title{font-family:"Bebas Neue",sans-serif;font-size:30px;letter-spacing:2px;}
+.sec-title span{color:var(--yellow);}
+
+/* CARDS */
+.card{background:var(--white06);border:1px solid var(--border);border-radius:var(--rl);padding:18px;margin-bottom:14px;}
+.card-title{font-family:"Bebas Neue",sans-serif;font-size:17px;letter-spacing:1px;margin-bottom:12px;}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;font-family:"DM Sans",sans-serif;font-size:13px;font-weight:500;border-radius:8px;border:1px solid var(--border2);background:var(--white10);color:var(--white);cursor:pointer;transition:all .15s;white-space:nowrap;}
+.btn:hover{background:var(--white20);}
+.btn-accent{background:var(--yellow);color:#000;border-color:var(--yellow);font-weight:700;}
+.btn-accent:hover{background:var(--yellow2);border-color:var(--yellow2);}
+.btn-sm{padding:5px 11px;font-size:12px;}
+.btn-danger{border-color:rgba(255,85,85,.35);color:#ff8888;}
+.btn-danger:hover{background:rgba(255,85,85,.15);}
+.btn-green{background:rgba(76,175,80,.2);border-color:rgba(76,175,80,.4);color:#81c784;}
+.btn-green:hover{background:rgba(76,175,80,.3);}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+
+/* INPUTS */
+.form-group{margin-bottom:13px;}
+.form-label{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--white50);margin-bottom:5px;display:block;}
+input[type=text],input[type=password],input[type=number],input[type=email],input[type=datetime-local],textarea,select{width:100%;padding:9px 12px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:8px;color:var(--white);font-family:"DM Sans",sans-serif;font-size:14px;outline:none;transition:border-color .2s;}
+input::placeholder,textarea::placeholder{color:rgba(255,255,255,.3);}
+input:focus,select:focus,textarea:focus{border-color:var(--yellow);background:rgba(255,255,255,.14);}
+select option{background:#1565C0;color:#fff;}
+textarea{resize:vertical;min-height:70px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+@media(max-width:500px){.form-row,.form-row-3{grid-template-columns:1fr;}}
+hr.div{border:none;border-top:1px solid var(--border);margin:16px 0;}
+
+/* TOAST */
+.toast-wrap{position:fixed;bottom:22px;right:22px;z-index:9999;display:flex;flex-direction:column;gap:8px;}
+.toast{padding:11px 16px;border-radius:10px;font-size:13px;font-weight:500;animation:tIn .25s ease;max-width:280px;}
+.toast.ok{background:var(--yellow);color:#000;}
+.toast.err{background:var(--red);color:#fff;}
+.toast.info{background:rgba(255,255,255,.15);color:#fff;border:1px solid var(--border2);}
+@keyframes tIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+/* BADGE */
+.badge{display:inline-block;padding:2px 9px;border-radius:99px;font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;}
+.b-yellow{background:rgba(230,216,50,.15);color:var(--yellow);border:1px solid rgba(230,216,50,.25);}
+.b-gray{background:var(--white10);color:var(--white50);border:1px solid var(--border);}
+.b-green{background:rgba(76,175,80,.15);color:#81c784;border:1px solid rgba(76,175,80,.25);}
+.b-red{background:rgba(255,85,85,.15);color:#ff8888;border:1px solid rgba(255,85,85,.25);}
+.b-blue{background:rgba(100,160,255,.15);color:#64a0ff;border:1px solid rgba(100,160,255,.25);}
+.b-orange{background:rgba(255,152,0,.15);color:#ffb74d;border:1px solid rgba(255,152,0,.25);}
+
+/* MODALS */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:500;align-items:center;justify-content:center;padding:16px;}
+.overlay.open{display:flex;}
+.modal{background:#1565C0;border:1px solid var(--border2);border-radius:var(--rl);padding:24px;width:100%;max-width:460px;max-height:92vh;overflow-y:auto;}
+.modal-title{font-family:"Bebas Neue",sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:18px;}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;}
+
+/* TOURNAMENT CARD */
+.t-card{background:var(--white06);border:1px solid var(--border);border-radius:var(--rl);padding:18px;margin-bottom:10px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:14px;}
+.t-card:hover{border-color:var(--yellow);background:var(--white10);}
+.t-icon{width:46px;height:46px;border-radius:12px;background:rgba(230,216,50,.12);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.t-name{font-family:"Bebas Neue",sans-serif;font-size:19px;letter-spacing:1px;}
+.t-meta{font-size:12px;color:var(--white50);margin-top:2px;}
+
+/* STANDINGS */
+.s-table{width:100%;border-collapse:collapse;font-size:13px;}
+.s-table th{text-align:left;padding:7px 9px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--white50);border-bottom:1px solid var(--border);background:rgba(0,0,0,.1);}
+.s-table td{padding:9px 9px;border-bottom:1px solid var(--border);}
+.s-table tr:last-child td{border-bottom:none;}
+.s-table tr.q1 td:first-child{border-left:2px solid var(--yellow);}
+.s-table tr.q2 td:first-child{border-left:2px solid #64a0ff;}
+.rnum{width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;background:var(--white10);color:var(--white50);}
+.rnum.q{background:rgba(230,216,50,.15);color:var(--yellow);}
+td.pts{font-family:"DM Mono",monospace;font-weight:500;color:var(--yellow);}
+td.tn{font-weight:500;}
+
+/* MATCH */
+.m-card{background:var(--white06);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:7px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.m-team{flex:1;min-width:90px;font-weight:500;font-size:13px;}
+.m-team.r{text-align:right;}
+.m-score{font-family:"Bebas Neue",sans-serif;font-size:20px;letter-spacing:2px;color:var(--yellow);min-width:56px;text-align:center;}
+.m-score.pend{color:var(--white50);font-size:15px;letter-spacing:0;}
+.m-det{font-size:11px;color:var(--white50);text-align:center;margin-top:1px;}
+.m-win{color:var(--yellow);}
+.m-lose{color:var(--white50);}
+
+/* BRACKET */
+.bracket-wrap{overflow-x:auto;padding-bottom:14px;}
+.bracket{display:flex;gap:0;min-width:580px;}
+.br-round{display:flex;flex-direction:column;justify-content:space-around;flex:1;padding:0 7px;}
+.br-round-title{font-family:"Bebas Neue",sans-serif;font-size:13px;letter-spacing:2px;color:var(--white50);text-align:center;margin-bottom:10px;padding-bottom:7px;border-bottom:1px solid var(--border);}
+.br-match{background:var(--white06);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:5px 0;}
+.br-team{padding:8px 11px;font-size:12px;font-weight:500;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);}
+.br-team:last-child{border-bottom:none;}
+.br-team.win{background:rgba(230,216,50,.08);color:var(--yellow);}
+.br-team.lose{color:var(--white50);}
+.br-team.tbd{color:var(--white50);font-style:italic;font-weight:400;}
+.br-sets{font-family:"DM Mono",monospace;font-size:11px;}
+
+/* RANKINGS */
+.rank-row{display:flex;align-items:center;gap:12px;padding:11px 14px;background:var(--white06);border:1px solid var(--border);border-radius:var(--r);margin-bottom:7px;transition:border-color .2s;}
+.rank-row:hover{border-color:var(--border2);}
+.rank-pos{font-family:"Bebas Neue",sans-serif;font-size:22px;color:var(--white50);width:30px;text-align:center;}
+.rank-pos.p1{color:#FFD700;}
+.rank-pos.p2{color:#C0C0C0;}
+.rank-pos.p3{color:#cd7f32;}
+.rank-name{flex:1;font-weight:500;}
+.rank-pts{font-family:"Bebas Neue",sans-serif;font-size:20px;color:var(--yellow);}
+
+/* ADMIN SECTIONS */
+.adm-sec{background:rgba(0,0,0,.15);border:1px solid rgba(230,216,50,.12);border-radius:var(--rl);padding:18px;margin-bottom:16px;}
+.adm-lbl{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--yellow);margin-bottom:4px;font-weight:700;}
+
+/* REGISTRATION CARD */
+.reg-card{background:var(--white06);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:8px;}
+.reg-name{font-weight:600;font-size:14px;}
+.reg-meta{font-size:12px;color:var(--white50);margin-top:3px;}
+.reg-actions{display:flex;gap:7px;margin-top:10px;}
+
+/* EMPTY */
+.empty{text-align:center;padding:50px 20px;color:var(--white50);}
+.empty-icon{font-size:36px;margin-bottom:10px;opacity:.4;}
+.empty-title{font-family:"Bebas Neue",sans-serif;font-size:20px;letter-spacing:1px;color:var(--white80);margin-bottom:5px;}
+.empty-sub{font-size:13px;}
+
+/* AUTH BOX */
+.auth-box{max-width:380px;margin:40px auto;}
+.auth-tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:20px;}
+.auth-tab{flex:1;padding:10px;font-size:14px;font-weight:500;background:none;border:none;color:var(--white50);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;}
+.auth-tab.active{color:var(--yellow);border-bottom-color:var(--yellow);}
+
+/* DETAIL CHIPS */
+.detail-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
+.dchip{display:flex;align-items:center;gap:5px;background:rgba(0,0,0,.2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:12px;color:var(--white80);}
+.dchip b{color:var(--yellow);}
+
+/* GROUPS GRID */
+.groups-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px;}
+@media(max-width:580px){.hero-stats{flex-wrap:wrap;}.hstat{min-width:45%;}}
+
+/* PROFILE ICON - fixed top left */
+#profileBtn{position:fixed;top:10px;left:10px;z-index:200;width:40px;height:40px;border-radius:12px;background:rgba(13,71,161,.95);border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;backdrop-filter:blur(8px);transition:all .2s;box-shadow:0 2px 12px rgba(0,0,0,.3);}
+#profileBtn:hover{background:var(--white20);border-color:var(--yellow);}
+#profileBtn.logged-in{background:rgba(230,216,50,.15);border-color:rgba(230,216,50,.4);}
+
+/* PROFILE DRAWER */
+#profileDrawer{position:fixed;top:0;left:0;bottom:0;width:280px;background:#0d47a1;border-right:1px solid var(--border2);z-index:300;transform:translateX(-100%);transition:transform .28s cubic-bezier(.4,0,.2,1);overflow-y:auto;box-shadow:4px 0 24px rgba(0,0,0,.4);}
+#profileDrawer.open{transform:translateX(0);}
+#drawerOverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:299;}
+#drawerOverlay.open{display:block;}
+.drawer-header{padding:20px 16px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.drawer-close{background:none;border:none;color:var(--white50);font-size:20px;cursor:pointer;padding:4px;}
+.drawer-close:hover{color:var(--white);}
+.drawer-section{padding:16px;}
+.drawer-avatar{width:56px;height:56px;border-radius:14px;background:rgba(230,216,50,.15);display:flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:10px;border:1.5px solid rgba(230,216,50,.3);}
+.drawer-name{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;}
+.drawer-email{font-size:12px;color:var(--white50);margin-bottom:14px;}
+.drawer-stat-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.drawer-stat{background:rgba(0,0,0,.2);border-radius:10px;padding:10px;text-align:center;}
+.drawer-stat-n{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--yellow);}
+.drawer-stat-l{font-size:10px;color:var(--white50);text-transform:uppercase;letter-spacing:1px;}
+.drawer-rank{display:flex;align-items:center;gap:8px;background:rgba(230,216,50,.08);border:1px solid rgba(230,216,50,.2);border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:13px;}
+.drawer-rank-pos{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--yellow);width:28px;}
+
+/* GROUP MANUAL EDIT */
+.gt-edit-row{display:grid;grid-template-columns:1fr 50px 50px 50px 60px 60px;gap:6px;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.gt-edit-row input{padding:4px 6px;font-size:12px;text-align:center;}
+
+/* RANKING SEARCH */
+#rankSearch{margin-bottom:14px;}
+/* PROFILE MODAL */
+.profile-duo{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:560px){.profile-duo{grid-template-columns:1fr;}}
+.profile-card{background:rgba(0,0,0,.2);border:1px solid var(--border);border-radius:12px;padding:16px;}
+.profile-avatar-lg{width:56px;height:56px;border-radius:14px;background:rgba(230,216,50,.15);display:flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:10px;}
+.profile-name-lg{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:4px;}
+.profile-stat{display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px solid var(--border);}
+.profile-stat:last-child{border-bottom:none;}
+.profile-stat-val{font-family:'DM Mono',monospace;color:var(--yellow);font-weight:600;}
+
+/* PRIVATE BANNER */
+.private-banner{background:rgba(150,0,255,.1);border:1px solid rgba(150,0,255,.25);border-radius:10px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px;font-size:13px;color:#cc88ff;}
+.b-private{background:rgba(150,0,255,.15);color:#cc88ff;border:1px solid rgba(150,0,255,.25);}
+
+/* PAY BOX */
+.pay-box{background:rgba(230,216,50,.07);border:1px solid rgba(230,216,50,.2);border-radius:10px;padding:14px 16px;margin:12px 0;}
+.pay-method{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);}
+.pay-method:last-child{border-bottom:none;}
+.pay-label{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--white50);width:60px;}
+.pay-value{font-family:'DM Mono',monospace;font-size:14px;color:var(--yellow);font-weight:600;}
+
+/* GROUP MOVE */
+.group-move-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.group-move-row:last-child{border-bottom:none;}
+
+/* CLICKABLE NAME */
+.clickable-name{cursor:pointer;border-bottom:1px dotted var(--white50);transition:color .15s;}
+.clickable-name:hover{color:var(--yellow);border-bottom-color:var(--yellow);}
+
+</style>
+</head>
+<body>
+
+<!-- PROFILE DRAWER OVERLAY -->
+<div id="drawerOverlay" onclick="closeDrawer()"></div>
+
+<!-- PROFILE DRAWER -->
+<div id="profileDrawer">
+  <div class="drawer-header">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;">My Profile</div>
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  </div>
+  <div class="drawer-section" id="drawerBody">
+    <!-- filled by renderDrawer() -->
+  </div>
+</div>
+
+<!-- PROFILE ICON BUTTON -->
+<button id="profileBtn" onclick="toggleDrawer()" title="Profile / Login">👤</button>
+
+<div id="loader">
+  <img src="data:image/jpeg;base64,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" alt="Logo">
+  <div class="logo-text">PADEL ADDICTS</div>
+  <div class="spin"></div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<!-- LOGIN MODAL -->
+<div class="overlay" id="loginModal">
+  <div class="modal">
+    <div class="modal-title">🔐 Admin Access</div>
+    <div class="form-group"><label class="form-label">Password</label>
+      <input type="password" id="adminPw" placeholder="Admin password" onkeydown="if(event.key==='Enter')tryLogin()"></div>
+    <div id="loginErr" style="color:var(--red);font-size:13px;margin-top:4px;"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('loginModal')">Cancel</button>
+      <button class="btn btn-accent" onclick="tryLogin()">Unlock</button>
+    </div>
+  </div>
+</div>
+
+<!-- AUTH MODAL kept for legacy but hidden — drawer handles auth now -->
+<div class="overlay" id="authModal">
+  <div class="modal">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div class="modal-title" style="margin-bottom:0;">Player Account</div>
+      <button class="btn btn-sm" onclick="closeModal('authModal')">✕ Close</button>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="authTabLogin" onclick="switchAuthTab('login')">Log In</button>
+      <button class="auth-tab" id="authTabSignup" onclick="switchAuthTab('signup')">Sign Up</button>
+    </div>
+    <div id="authBody"></div>
+    <div id="authErr" style="color:var(--red);font-size:13px;margin-top:6px;"></div>
+  </div>
+</div>
+
+<!-- SCORE MODAL -->
+<div class="overlay" id="scoreModal">
+  <div class="modal">
+    <div class="modal-title" id="scoreTitle">Enter Score</div>
+    <div id="scoreBody"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('scoreModal')">Cancel</button>
+      <button class="btn btn-accent" onclick="submitScore()">Save Result</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT TOURNAMENT MODAL -->
+<div class="overlay" id="editTourneyModal">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-title">Edit Tournament</div>
+    <div id="editTourneyBody"></div>
+    <div class="modal-actions">
+      <button class="btn btn-danger" onclick="deleteTournament()">Delete</button>
+      <button class="btn" onclick="closeModal('editTourneyModal')">Cancel</button>
+      <button class="btn btn-accent" onclick="saveTournament()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT TEAM MODAL -->
+<div class="overlay" id="editTeamModal">
+  <div class="modal">
+    <div class="modal-title">Edit Team</div>
+    <div id="editTeamBody"></div>
+    <div class="modal-actions">
+      <button class="btn btn-danger" onclick="deleteTeam()">Delete Team</button>
+      <button class="btn" onclick="closeModal('editTeamModal')">Cancel</button>
+      <button class="btn btn-accent" onclick="saveTeam()">Save</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- PROFILE MODAL -->
+<div class="overlay" id="profileModal">
+  <div class="modal" style="max-width:680px;">
+    <div class="modal-title" id="profileModalTitle">Player Profile</div>
+    <div id="profileModalBody"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('profileModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- REGISTRATION MODAL -->
+<div class="overlay" id="regModal">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-title">📝 Register for Tournament</div>
+    <div id="regModalBody"></div>
+    <div id="regModalErr" style="color:var(--red);font-size:13px;margin-top:6px;"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('regModal')">Cancel</button>
+      <button class="btn btn-accent" onclick="submitRegistration()">Submit Registration</button>
+    </div>
+  </div>
+</div>
+
+<!-- MOVE TEAM MODAL -->
+<div class="overlay" id="moveTeamModal">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-title">↔ Move Teams Between Groups</div>
+    <div id="moveTeamBody"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('moveTeamModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <img src="data:image/jpeg;base64,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" alt="The Padel Addicts" class="hero-logo" onclick="adminClickCount()" title="The Padel Addicts">
+  <div class="hero-eyebrow">Official Tournament Platform</div>
+  <div class="hero-title">THE PADEL<br><span>ADDICTS</span></div>
+  <div class="hero-sub">Where Champions Are Made</div>
+
+</div>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="nav-auth" id="navAuth"></div>
+    <nav class="nav" id="mainNav">
+      <button class="nav-btn active" onclick="showTab('tab-home')">Tournaments</button>
+      <button class="nav-btn" onclick="showTab('tab-rankings')">Rankings</button>
+    </nav>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- HOME -->
+  <div id="tab-home" class="section active">
+    <div class="sec-header"><div class="sec-title">Tournaments</div></div>
+    <div id="tournament-list"></div>
+  </div>
+
+  <!-- TOURNAMENT DETAIL -->
+  <div id="tab-tournament" class="section">
+    <div style="margin-bottom:18px;"><button class="btn btn-sm" onclick="showTab('tab-home')">← Back</button></div>
+    <div id="tournament-detail"></div>
+  </div>
+
+  <!-- RANKINGS -->
+  <div id="tab-rankings" class="section">
+    <div class="sec-header">
+      <div class="sec-title">Player <span>Rankings</span></div>
+      <div id="rankings-count" style="font-size:13px;color:var(--white50);"></div>
+    </div>
+    <input type="text" id="rankSearch" placeholder="🔍 Search player name..." oninput="filterRankings(this.value)" style="margin-bottom:14px;width:100%;">
+    <div id="rankings-list"></div>
+  </div>
+
+  <!-- ADMIN -->
+  <div id="tab-admin" class="section">
+    <div class="sec-header">
+      <div class="sec-title">Admin <span>Panel</span></div>
+      <button class="btn btn-sm btn-danger" onclick="logout()">Lock</button>
+    </div>
+
+    <div class="adm-sec">
+      <div class="adm-lbl">New Tournament</div>
+      <div class="card-title" style="margin-bottom:14px;">Create Tournament</div>
+      <div class="form-group"><label class="form-label">Tournament Name</label><input type="text" id="nt-name" placeholder="e.g. Padel Addicts Open — Summer 2026"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Location</label><input type="text" id="nt-loc" placeholder="e.g. New Cairo Courts"></div>
+        <div class="form-group"><label class="form-label">Date & Time</label><input type="datetime-local" id="nt-dt"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Entry Fee (EGP)</label><input type="number" id="nt-fee" placeholder="0"></div>
+        <div class="form-group"><label class="form-label">Max Teams</label><input type="number" id="nt-max" placeholder="16" value="16"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Prize</label><input type="text" id="nt-prize" placeholder="e.g. Trophy + 5,000 EGP"></div>
+      <div class="form-group"><label class="form-label">Registration Form URL (Google Form)</label><input type="text" id="nt-form" placeholder="https://forms.gle/..."></div>
+      <button class="btn btn-accent" onclick="createTournament()">Create Tournament</button>
+    </div>
+
+    <div class="adm-sec">
+      <div class="adm-lbl">⏳ Pending Registrations</div>
+      <div class="card-title" style="margin-bottom:14px;">Player Registration Requests</div>
+      <div class="form-group"><label class="form-label">Tournament</label><select id="reg-tid" onchange="loadPendingRegs()"></select></div>
+      <div id="pending-regs"><div style="color:var(--white50);font-size:13px;">Select a tournament to see pending registrations</div></div>
+    </div>
+
+    <div class="adm-sec">
+      <div class="adm-lbl">Teams</div>
+      <div class="card-title" style="margin-bottom:14px;">Register Team</div>
+      <div class="form-group"><label class="form-label">Tournament</label><select id="team-tid" onchange="refreshAdminTeams()"></select></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Player 1 Name</label><input type="text" id="tp1" placeholder="First player"></div>
+        <div class="form-group"><label class="form-label">Player 2 Name</label><input type="text" id="tp2" placeholder="Second player"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Player 1 Phone</label><input type="text" id="tp1ph" placeholder="+20..."></div>
+        <div class="form-group"><label class="form-label">Player 2 Phone</label><input type="text" id="tp2ph" placeholder="+20..."></div>
+      </div>
+      <button class="btn btn-accent" onclick="addTeam()">Register Team</button>
+      <hr class="div">
+      <div style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--white50);margin-bottom:10px;font-weight:600;">Registered Teams</div>
+      <div id="admin-teams"></div>
+    </div>
+
+    <div class="adm-sec">
+      <div class="adm-lbl">Players</div>
+      <div class="card-title" style="margin-bottom:14px;">All Player Profiles (Admin View)</div>
+      <div id="admin-players-list"><div style="color:var(--white50);font-size:13px;">Loading...</div></div>
+    </div>
+
+    <div class="adm-sec">
+      <div class="adm-lbl">Tournament Management</div>
+      <div class="card-title" style="margin-bottom:14px;">Manage Tournament</div>
+      <div class="form-group"><label class="form-label">Select Tournament</label><select id="manage-tid" onchange="loadManage()"></select></div>
+      <div id="manage-panel"></div>
+    </div>
+  </div>
+
+  <!-- MY ACCOUNT -->
+  <div id="tab-account" class="section">
+    <div class="sec-header"><div class="sec-title">My <span>Account</span></div></div>
+    <div id="account-body"></div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div style="text-align:center;padding:24px 16px 40px;border-top:1px solid rgba(255,255,255,.07);margin-top:20px;">
+  <div style="font-size:11px;color:rgba(255,255,255,.25);letter-spacing:1px;">THE PADEL ADDICTS &nbsp;·&nbsp; Official Tournament Platform</div>
+  <div style="margin-top:10px;">
+    <button onclick="openModal('loginModal');document.getElementById('adminPw').value='';document.getElementById('loginErr').textContent='';" style="background:none;border:none;color:rgba(255,255,255,.2);font-size:11px;cursor:pointer;letter-spacing:.5px;">Admin Access</button>
+  </div>
+</div>
+
+<script>
+const SB = "https://lkqdaxrbtvizfpafbhbp.supabase.co";
+const KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxrcWRheHJidHZpemZwYWZiaGJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyMjQ5MzAsImV4cCI6MjA5MjgwMDkzMH0.udvEaXyuWEgrSdKlkIijNkTZchnX3yOpklqAKZljz6k";
+const ADMIN_PW = "Thezeyadaddict";
+const PTS = {group:1,quarter_final:2,semi_final:3,final:5};
+
+let isAdmin=false, currentUser=null, currentSession=null;
+let allPlayers=[], allTourneys=[], allTeams=[];
+let curScoreMatch=null, curEditTourney=null, curEditTeam=null;
+
+// ── API ──────────────────────────────────────────────────────────────
+async function api(method,path,body,authToken){
+  const h={"apikey":KEY,"Authorization":`Bearer ${authToken||KEY}`,"Content-Type":"application/json","Prefer":"return=representation"};
+  const r=await fetch(`${SB}/rest/v1/${path}`,{method,headers:h,body:body?JSON.stringify(body):undefined});
+  if(!r.ok){const e=await r.text();throw new Error(e);}
+  const t=await r.text();return t?JSON.parse(t):[];
+}
+const db={
+  get:(t,q="")=>api("GET",`${t}?${q}`),
+  post:(t,b)=>api("POST",t,b),
+  patch:(t,q,b)=>api("PATCH",`${t}?${q}`,b),
+  del:(t,q)=>api("DELETE",`${t}?${q}`),
+};
+// Authenticated db — uses current user's JWT so RLS allows the operation
+const dbAuth={
+  post:(t,b)=>api("POST",t,b,currentSession?.access_token),
+  patch:(t,q,b)=>api("PATCH",`${t}?${q}`,b,currentSession?.access_token),
+};
+
+// ── AUTH API ─────────────────────────────────────────────────────────
+async function sbSignup(email,password,name){
+  const r=await fetch(`${SB}/auth/v1/signup`,{method:"POST",headers:{"apikey":KEY,"Content-Type":"application/json"},body:JSON.stringify({email,password,data:{full_name:name}})});
+  return r.json();
+}
+async function sbLogin(email,password){
+  const r=await fetch(`${SB}/auth/v1/token?grant_type=password`,{method:"POST",headers:{"apikey":KEY,"Content-Type":"application/json"},body:JSON.stringify({email,password})});
+  return r.json();
+}
+async function sbLogout(token){
+  await fetch(`${SB}/auth/v1/logout`,{method:"POST",headers:{"apikey":KEY,"Authorization":`Bearer ${token}`}});
+}
+
+// ── TOAST ────────────────────────────────────────────────────────────
+function toast(msg,type="ok"){
+  const w=document.getElementById("toastWrap");
+  const t=document.createElement("div");
+  t.className=`toast ${type}`;t.textContent=msg;
+  w.appendChild(t);setTimeout(()=>t.remove(),3400);
+}
+
+// ── MODAL ────────────────────────────────────────────────────────────
+function openModal(id){document.getElementById(id).classList.add("open");}
+function closeModal(id){document.getElementById(id).classList.remove("open");}
+
+// ── TABS ─────────────────────────────────────────────────────────────
+function showTab(id){
+  document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));
+  const map={"tab-home":0,"tab-rankings":1};
+  if(map[id]!==undefined)document.querySelectorAll(".nav-btn")[map[id]]?.classList.add("active");
+}
+
+// ── NAV RIGHT ────────────────────────────────────────────────────────
+function renderNavRight(){
+  // Update nav admin button
+  const navRight=document.getElementById("navRight");
+  if(navRight){
+    navRight.innerHTML=isAdmin?`<button class="nav-btn nav-admin" onclick="showTab('tab-admin')">⚙ Admin ✓</button>`:"";
+  }
+  // Also keep old navAuth area working if it exists
+  const el=document.getElementById("navAuth");
+  if(el){
+    if(isAdmin){
+      el.innerHTML=`<button class="nav-auth-btn admin-active" onclick="showTab('tab-admin')">Admin Panel</button>
+        <button class="nav-auth-btn" onclick="logout()">Lock</button>`;
+    } else { el.innerHTML=""; }
+  }
+  // Update profile button appearance
+  const pb=document.getElementById("profileBtn");
+  if(pb){
+    pb.classList.toggle("logged-in",!!currentUser);
+    pb.textContent=currentUser?"🟡":"👤";
+    pb.title=currentUser?(currentUser.name||"My Profile"):"Login / Sign Up";
+  }
+  renderDrawer();
+}
+
+// ── DRAWER ────────────────────────────────────────────────────────────
+function toggleDrawer(){
+  const d=document.getElementById("profileDrawer");
+  const o=document.getElementById("drawerOverlay");
+  if(!d||!o)return;
+  const isOpen=d.classList.contains("open");
+  if(isOpen){closeDrawer();}
+  else{d.classList.add("open");o.classList.add("open");renderDrawer();}
+}
+function closeDrawer(){
+  const d=document.getElementById("profileDrawer");
+  const o=document.getElementById("drawerOverlay");
+  if(d)d.classList.remove("open");
+  if(o)o.classList.remove("open");
+}
+async function renderDrawer(){
+  const el=document.getElementById("drawerBody");
+  if(!el)return;
+  if(!currentUser){
+    el.innerHTML=`
+      <div class="auth-tabs" style="margin-bottom:16px;">
+        <button class="auth-tab active" id="dTabLogin" onclick="switchDrawerTab('login')">Log In</button>
+        <button class="auth-tab" id="dTabSignup" onclick="switchDrawerTab('signup')">Sign Up</button>
+      </div>
+      <div id="drawerAuthBody"></div>
+      <div id="drawerAuthErr" style="color:var(--red);font-size:13px;margin-top:6px;"></div>`;
+    renderDrawerAuthForm("login");
+    return;
+  }
+  try{
+    if(!currentUser.id && currentUser.email){
+      const found=await db.get("players",`email=eq.${encodeURIComponent(currentUser.email)}`);
+      if(found.length)Object.assign(currentUser,found[0]);
+    }
+    const player=currentUser.id?(await db.get("players",`id=eq.${currentUser.id}`)):[];
+    const p=player[0]||{total_points:0,titles:0,name:currentUser.name||currentUser.email};
+    const ranked=allPlayers.filter(x=>x.total_points>0||x.titles>0).sort((a,b)=>b.total_points-a.total_points);
+    const rankPos=ranked.findIndex(x=>x.id===currentUser.id);
+    el.innerHTML=`
+      <div class="drawer-avatar">🎾</div>
+      <div class="drawer-name">${esc(p.name)}</div>
+      <div class="drawer-email">${esc(currentUser.email||"")}</div>
+      ${rankPos>=0?`<div class="drawer-rank"><span class="drawer-rank-pos">#${rankPos+1}</span><span style="color:var(--white80);">Global Ranking</span></div>`
+        :`<div style="font-size:12px;color:var(--white50);margin-bottom:12px;">Join a tournament to get ranked!</div>`}
+      <div class="drawer-stat-row">
+        <div class="drawer-stat"><div class="drawer-stat-n">${p.total_points||0}</div><div class="drawer-stat-l">Points</div></div>
+        <div class="drawer-stat"><div class="drawer-stat-n">${p.titles||0}</div><div class="drawer-stat-l">Titles</div></div>
+      </div>
+      <button class="btn" style="width:100%;margin-bottom:8px;" onclick="closeDrawer();showTab('tab-account')">View Full Profile</button>
+      <button class="btn btn-danger" style="width:100%;" onclick="playerLogout()">Log Out</button>`;
+  }catch(e){el.innerHTML="<div style='color:var(--red);font-size:13px;'>Error loading profile</div>";}
+}
+function switchDrawerTab(t){
+  const l=document.getElementById("dTabLogin");
+  const s=document.getElementById("dTabSignup");
+  if(l)l.classList.toggle("active",t==="login");
+  if(s)s.classList.toggle("active",t==="signup");
+  renderDrawerAuthForm(t);
+}
+function renderDrawerAuthForm(mode="login"){
+  const body=document.getElementById("drawerAuthBody");
+  if(!body)return;
+  if(mode==="login"){
+    body.innerHTML=`
+      <div class="form-group"><label class="form-label">Email</label><input type="email" id="d-email" placeholder="you@email.com"></div>
+      <div class="form-group"><label class="form-label">Password</label><input type="password" id="d-pw" placeholder="Password" onkeydown="if(event.key==='Enter')doDrawerLogin()"></div>
+      <button class="btn btn-accent" style="width:100%;margin-top:4px;" onclick="doDrawerLogin()">Log In</button>`;
+  } else {
+    body.innerHTML=`
+      <div class="form-group"><label class="form-label">Full Name</label><input type="text" id="d-name" placeholder="Your full name"></div>
+      <div class="form-group"><label class="form-label">Email</label><input type="email" id="d-email" placeholder="you@email.com"></div>
+      <div class="form-group"><label class="form-label">Phone Number</label><input type="tel" id="d-phone" placeholder="e.g. 01012345678"></div>
+      <div class="form-group"><label class="form-label">Password</label><input type="password" id="d-pw" placeholder="Min 6 characters"></div>
+      <div style="font-size:11px;color:var(--white50);margin-bottom:8px;">📞 Phone is only visible to the admin</div>
+      <button class="btn btn-accent" style="width:100%;margin-top:4px;" onclick="doDrawerSignup()">Create Account</button>`;
+  }
+}
+async function doDrawerLogin(){
+  const email=document.getElementById("d-email")?.value.trim();
+  const pw=document.getElementById("d-pw")?.value;
+  const err=document.getElementById("drawerAuthErr");
+  if(!email||!pw){if(err)err.textContent="Fill in all fields.";return;}
+  try{
+    const res=await sbLogin(email,pw);
+    if(res.error){if(err)err.textContent=res.error.message||"Login failed.";return;}
+    currentSession=res;
+    const found=await db.get("players",`email=eq.${encodeURIComponent(email)}`);
+    currentUser=found.length?{...found[0],email}:{email,name:res.user?.user_metadata?.full_name||email,total_points:0,titles:0};
+    persistSession();
+    renderNavRight();toast("Welcome back!");
+    // If player was trying to register, open the modal now
+    if(pendingRegAfterLogin){
+      closeDrawer();
+      const {tid,tName,fee}=pendingRegAfterLogin;
+      pendingRegAfterLogin=null;
+      setTimeout(()=>openRegModal(tid,tName,fee),300);
+    }
+  }catch(e){if(err)err.textContent=e.message;}
+}
+async function doDrawerSignup(){
+  const name=document.getElementById("d-name")?.value.trim();
+  const email=document.getElementById("d-email")?.value.trim();
+  const phone=document.getElementById("d-phone")?.value.trim();
+  const pw=document.getElementById("d-pw")?.value;
+  const err=document.getElementById("drawerAuthErr");
+  if(!name||!email||!pw){if(err)err.textContent="Fill in all fields.";return;}
+  if(pw.length<6){if(err)err.textContent="Password must be at least 6 characters.";return;}
+  try{
+    const res=await sbSignup(email,pw,name);
+    if(res.error){if(err)err.textContent=res.error.message||"Signup failed.";return;}
+    // Always log in immediately after signup so session is guaranteed
+    const loginRes=await sbLogin(email,pw);
+    if(loginRes.error){if(err)err.textContent=loginRes.error.message||"Signup succeeded but login failed. Please log in manually.";return;}
+    currentSession=loginRes;
+    // Create player record immediately with phone
+    const existing=await db.get("players",`email=eq.${encodeURIComponent(email)}`);
+    let player;
+    if(!existing.length){
+      const created=await db.post("players",{name,email,phone:phone||null,total_points:0,titles:0});
+      player=created[0]||{name,email,phone:phone||null,total_points:0,titles:0};
+    } else {player=existing[0];}
+    currentUser={...player,email,name,phone:phone||null};
+    persistSession();
+    await loadAll();
+    renderNavRight();toast(`Welcome ${name}!`);
+  }catch(e){if(err)err.textContent=e.message;}
+}
+
+// ── ADMIN AUTH ───────────────────────────────────────────────────────
+let _adminClicks=0,_adminTimer=null;
+function adminClickCount(){
+  _adminClicks++;
+  if(_adminTimer)clearTimeout(_adminTimer);
+  _adminTimer=setTimeout(()=>{_adminClicks=0;},1500);
+  if(_adminClicks>=3){_adminClicks=0;openModal("loginModal");document.getElementById("adminPw").value="";document.getElementById("loginErr").textContent="";}
+}
+function tryLogin(){
+  const pw=document.getElementById("adminPw").value;
+  if(pw===ADMIN_PW){isAdmin=true;closeModal("loginModal");renderNavRight();showTab("tab-admin");loadAdminData();toast("Admin unlocked");}
+  else document.getElementById("loginErr").textContent="Incorrect password.";
+}
+function logout(){isAdmin=false;renderNavRight();showTab("tab-home");}
+
+// ── PLAYER AUTH ──────────────────────────────────────────────────────
+function switchAuthTab(t){
+  document.getElementById("authTabLogin").classList.toggle("active",t==="login");
+  document.getElementById("authTabSignup").classList.toggle("active",t==="signup");
+  renderAuthForm(t);
+}
+function renderAuthForm(mode="login"){
+  const body=document.getElementById("authBody");
+  if(mode==="login"){
+    body.innerHTML=`<div class="form-group"><label class="form-label">Email</label><input type="email" id="auth-email" placeholder="you@email.com"></div>
+      <div class="form-group"><label class="form-label">Password</label><input type="password" id="auth-pw" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <button class="btn btn-accent" style="width:100%" onclick="doLogin()">Log In</button>`;
+  } else {
+    body.innerHTML=`<div class="form-group"><label class="form-label">Full Name</label><input type="text" id="auth-name" placeholder="Your full name"></div>
+      <div class="form-group"><label class="form-label">Email</label><input type="email" id="auth-email" placeholder="you@email.com"></div>
+      <div class="form-group"><label class="form-label">Password</label><input type="password" id="auth-pw" placeholder="Min 6 characters"></div>
+      <button class="btn btn-accent" style="width:100%" onclick="doSignup()">Create Account</button>`;
+  }
+}
+async function doLogin(){
+  const email=document.getElementById("auth-email").value.trim();
+  const pw=document.getElementById("auth-pw").value;
+  const err=document.getElementById("authErr");
+  if(!email||!pw){err.textContent="Fill in all fields.";return;}
+  try{
+    // Check if player account exists before attempting login
+    const existing=await db.get("players",`email=eq.${encodeURIComponent(email)}`);
+    if(!existing.length){err.textContent="No account found with this email. Please sign up first.";return;}
+    const res=await sbLogin(email,pw);
+    if(res.error){err.textContent=res.error.message||"Login failed.";return;}
+    currentSession=res;
+    currentUser={...existing[0],email};
+    closeModal("authModal");renderNavRight();renderAccount();showTab("tab-account");toast(`Welcome back!`);
+  }catch(e){err.textContent=e.message;}
+}
+async function doSignup(){
+  const name=document.getElementById("auth-name").value.trim();
+  const email=document.getElementById("auth-email").value.trim();
+  const pw=document.getElementById("auth-pw").value;
+  const err=document.getElementById("authErr");
+  if(!name||!email||!pw){err.textContent="Fill in all fields.";return;}
+  if(pw.length<6){err.textContent="Password must be at least 6 characters.";return;}
+  try{
+    const res=await sbSignup(email,pw,name);
+    if(res.error){err.textContent=res.error.message||"Signup failed.";return;}
+    // DO NOT create player record here — only created when they join a tournament
+    if(res.session){currentSession=res.session;}
+    currentUser={email,name,total_points:0,titles:0};
+    closeModal("authModal");renderNavRight();renderAccount();showTab("tab-account");
+    toast(`Welcome ${name}! Join a tournament to get ranked.`);
+  }catch(e){err.textContent=e.message;}
+}
+async function playerLogout(){
+  if(currentSession?.access_token)await sbLogout(currentSession.access_token).catch(()=>{});
+  currentUser=null;currentSession=null;
+  clearSession();
+  renderNavRight();showTab("tab-home");toast("Logged out","info");
+}
+
+// ── ACCOUNT PAGE ─────────────────────────────────────────────────────
+async function renderAccount(){
+  const el=document.getElementById("account-body");
+  if(!currentUser){el.innerHTML=`<div class="empty"><div class="empty-title">Not logged in</div></div>`;return;}
+  try{
+    // look up player by email if we don't have an id yet
+    if(!currentUser.id && currentUser.email){
+      const found=await db.get("players",`email=eq.${encodeURIComponent(currentUser.email)}`);
+      if(found.length)Object.assign(currentUser,found[0]);
+    }
+    const hist=currentUser.id?await db.get("ranking_history",`player_id=eq.${currentUser.id}&order=created_at.desc`):[];
+    const pts=hist.reduce((s,r)=>s+r.points_awarded,0);
+    const player=currentUser.id?await db.get("players",`id=eq.${currentUser.id}`):[];
+    const p=player[0]||{total_points:0,titles:0,name:currentUser.name};
+    el.innerHTML=`<div class="card" style="margin-bottom:16px;">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
+        <div style="width:52px;height:52px;border-radius:14px;background:rgba(230,216,50,.15);display:flex;align-items:center;justify-content:center;font-size:24px;">👤</div>
+        <div><div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;">${esc(p.name)}</div>
+        <div style="font-size:12px;color:var(--white50);">${esc(currentUser.email||"")}</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;text-align:center;">
+        <div style="background:rgba(0,0,0,.2);border-radius:10px;padding:12px;">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--yellow);">${p.total_points||0}</div>
+          <div style="font-size:11px;color:var(--white50);">Total Points</div>
+        </div>
+        <div style="background:rgba(0,0,0,.2);border-radius:10px;padding:12px;">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--yellow);">${p.titles||0}</div>
+          <div style="font-size:11px;color:var(--white50);">Titles</div>
+        </div>
+        <div style="background:rgba(0,0,0,.2);border-radius:10px;padding:12px;">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--yellow);">${hist.length}</div>
+          <div style="font-size:11px;color:var(--white50);">Matches</div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Point History</div>
+      ${hist.length?hist.map(h=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;">
+        <span style="color:var(--white80);">${stageName(h.stage)}</span>
+        <span style="font-family:'DM Mono',monospace;color:var(--yellow);">+${h.points_awarded} pts</span>
+      </div>`).join(""):`<div style="color:var(--white50);font-size:13px;">No points yet — join a tournament!</div>`}
+    </div>`;
+  }catch(e){el.innerHTML=`<div class="empty"><div class="empty-title">Error loading account</div></div>`;}
+}
+
+// ── LOAD ALL ─────────────────────────────────────────────────────────
+async function loadAll(){
+  try{
+    [allPlayers,allTourneys,allTeams]=await Promise.all([
+      db.get("players","order=total_points.desc"),
+      db.get("tournaments","order=created_at.desc"),
+      db.get("teams","order=name.asc"),
+    ]);
+    renderTourneyList();renderRankings();
+  }catch(e){toast("Failed to load data","err");}
+}
+
+// ── TOURNAMENT LIST ───────────────────────────────────────────────────
+function renderTourneyList(){
+  const el=document.getElementById("tournament-list");
+  if(!allTourneys.length){el.innerHTML=`<div class="empty"><div class="empty-icon">🏆</div><div class="empty-title">No tournaments yet</div><div class="empty-sub">Check back soon</div></div>`;return;}
+  const sl={registration:"Registration",group_stage:"Group Stage",knockout:"Knockout",completed:"Completed"};
+  const sb={registration:"b-gray",group_stage:"b-blue",knockout:"b-orange",completed:"b-green"};
+  el.innerHTML=allTourneys.filter(t=>isAdmin||getTourneyVisibilityObj(t)!=='private').map(t=>{
+    const teams=allTeams.filter(tm=>tm.tournament_id===t.id);
+    const full=t.max_teams&&teams.length>=t.max_teams;
+    const isPrivate=getTourneyVisibilityObj(t)==='private';
+    return `<div class="t-card" onclick="openTourney('${t.id}')">
+      <div class="t-icon">${isPrivate?'🔒':'🏆'}</div>
+      <div style="flex:1;">
+        <div class="t-name">${esc(t.name)}</div>
+        <div class="t-meta">${t.location?`📍 ${esc(t.location)} &nbsp;`:""} ${t.match_datetime?`🗓 ${formatDt(t.match_datetime)}`:""}
+        ${t.entry_fee?` &nbsp;💰 ${t.entry_fee} EGP`:""}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end;">
+        <span class="badge ${sb[t.status]||"b-gray"}">${sl[t.status]||t.status}</span>
+        ${isPrivate?`<span class="badge b-private">Private</span>`:""}
+        ${!isPrivate&&full?`<span class="badge b-red">Full</span>`:`<span style="font-size:11px;color:var(--white50);">${teams.length}/${t.max_teams||"∞"} teams</span>`}
+      </div>
+    </div>`;
+  }).join("");
+}
+
+// ── OPEN TOURNAMENT ───────────────────────────────────────────────────
+async function openTourney(id){
+  showTab("tab-tournament");
+  const el=document.getElementById("tournament-detail");
+  el.innerHTML=`<div class="empty"><div class="spin"></div></div>`;
+  try{
+    const [ts,groups,gts,matches,teams]=await Promise.all([
+      db.get("tournaments",`id=eq.${id}`),
+      db.get("groups",`tournament_id=eq.${id}&order=name.asc`),
+      db.get("group_teams","select=*"),
+      db.get("matches",`tournament_id=eq.${id}&order=match_number.asc`),
+      db.get("teams",`tournament_id=eq.${id}&order=name.asc`),
+    ]);
+    const t=ts[0];if(!t){el.innerHTML="<div class='empty'><div class='empty-title'>Not found</div></div>";return;}
+
+    let html=`<div style="margin-bottom:22px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:2px;">${esc(t.name)}</div>`;
+    // detail chips
+    const chips=[];
+    if(t.location)chips.push(`<div class="dchip">📍 <b>${esc(t.location)}</b></div>`);
+    if(t.match_datetime)chips.push(`<div class="dchip">🗓 <b>${formatDt(t.match_datetime)}</b></div>`);
+    if(t.entry_fee)chips.push(`<div class="dchip">💰 Entry: <b>${t.entry_fee} EGP</b></div>`);
+    if(t.prize)chips.push(`<div class="dchip">🥇 Prize: <b>${esc(t.prize)}</b></div>`);
+    const tms=allTeams.filter(tm=>tm.tournament_id===id);
+    chips.push(`<div class="dchip">👥 Teams: <b>${tms.length}${t.max_teams?"/"+t.max_teams:""}</b></div>`);
+    if(chips.length)html+=`<div class="detail-chips">${chips.join("")}</div>`;
+
+    // private banner
+    const isPrivate=getTourneyVisibilityObj(t)==='private';
+    if(isPrivate&&!isAdmin){
+      html+=`</div><div class="private-banner">🔒 This tournament is currently private. Full details will be visible once it's made public.</div>`;
+      el.innerHTML=html;return;
+    }
+    html+=`</div>`;
+
+    // register button (built-in form)
+    if(t.status==="registration"){
+      const approvedTeams=teams.filter(x=>x.registration_status==="approved");
+      const full=t.max_teams&&approvedTeams.length>=t.max_teams;
+      if(!full){
+        html+=`<button class="btn btn-accent" style="margin-bottom:16px;" onclick="handleRegisterClick('${t.id}','${esc(t.name)}',${t.entry_fee||0})">📝 Register Your Team</button>`;
+      } else {
+        html+=`<div class="badge b-red" style="padding:8px 14px;font-size:13px;display:inline-block;margin-bottom:16px;">Registration Full</div>`;
+      }
+    }
+
+    // teams list
+    const approvedTeams=teams.filter(x=>x.registration_status==="approved");
+    if(approvedTeams.length){
+      html+=`<div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;margin-bottom:12px;">Registered Teams</div>`;
+      html+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-bottom:20px;">`;
+      html+=approvedTeams.map(tm=>`<div style="background:var(--white06);border:1px solid var(--border);border-radius:10px;padding:12px;cursor:pointer;transition:border-color .2s;" onclick="openTeamProfileModal('${tm.id}')" onmouseover="this.style.borderColor='var(--yellow)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div style="font-weight:600;font-size:14px;">🎾 <span class="clickable-name">${esc(tm.name)}</span></div>
+      </div>`).join("");
+      html+=`</div>`;
+    }
+
+    // groups
+    if(groups.length){
+      html+=`<div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;margin-bottom:14px;">Group Stage</div>`;
+      html+=`<div class="groups-grid">`;
+      for(const g of groups){
+        const gtms=gts.filter(x=>x.group_id===g.id);
+        html+=renderGroupCard(g,gtms,teams,matches);
+      }
+      html+=`</div>`;
+      html+=`<div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;margin:26px 0 14px;">Group Matches</div>`;
+      for(const g of groups){
+        const gm=matches.filter(m=>m.group_id===g.id);if(!gm.length)continue;
+        html+=`<div style="font-size:12px;font-weight:600;color:var(--white50);letter-spacing:1px;text-transform:uppercase;margin-bottom:7px;">${esc(g.name)}</div>`;
+        html+=gm.map(m=>renderMatchCard(m,teams,false)).join("");
+      }
+    }
+
+    // knockout
+    const ko=matches.filter(m=>!m.group_id);
+    if(ko.length){
+      html+=`<div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;margin:28px 0 14px;">Knockout Stage</div>`;
+      html+=renderBracket(ko,teams);
+    }
+
+    // winner
+    if(t.status==="completed"&&t.winner_team_id){
+      const wt=teams.find(tm=>tm.id===t.winner_team_id);
+      if(wt)html+=`<div style="text-align:center;padding:28px;background:rgba(230,216,50,.08);border:1px solid rgba(230,216,50,.2);border-radius:16px;margin-top:24px;">
+        <div style="font-size:36px;">🏆</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;color:var(--yellow);margin-top:6px;">Champions</div>
+        <div style="font-size:20px;font-weight:600;margin-top:4px;">${esc(wt.name)}</div>
+      </div>`;
+    }
+
+    if(!groups.length&&!ko.length&&t.status==="registration"){
+      html+=`<div class="empty"><div class="empty-icon">⏳</div><div class="empty-title">Registration Open</div><div class="empty-sub">Tournament hasn't started yet</div></div>`;
+    }
+    el.innerHTML=html;
+  }catch(e){el.innerHTML=`<div class="empty"><div class="empty-title">Error</div><div class="empty-sub">${e.message}</div></div>`;}
+}
+
+function renderGroupCard(group,gts,teams,matches){
+  const sorted=sortGroupTeams([...gts],matches||[]);
+  const rows=sorted.map((gt,i)=>{
+    const tm=teams.find(t=>t.id===gt.team_id)||{name:"—"};
+    return `<tr class="${i===0?"q1":i===1?"q2":""}">
+      <td><span class="rnum ${i<2?"q":""}">${i+1}</span></td>
+      <td class="tn">${esc(tm.name)}</td>
+      <td style="text-align:center;color:var(--white50);">${gt.played}</td>
+      <td style="text-align:center;color:var(--white50);">${gt.won}</td>
+      <td style="text-align:center;color:var(--white50);">${gt.lost}</td>
+      <td class="pts">${gt.points}</td>
+    </tr>`;
+  }).join("");
+  return `<div class="card"><div class="card-title">${esc(group.name)}</div>
+    <table class="s-table"><thead><tr><th>#</th><th>Team</th><th style="text-align:center">P</th><th style="text-align:center">W</th><th style="text-align:center">L</th><th>Pts</th></tr></thead>
+    <tbody>${rows}</tbody></table>
+    <div style="margin-top:9px;font-size:11px;color:var(--white50);">
+      <span style="border-left:2px solid var(--yellow);padding-left:5px;margin-right:10px;">1st Qualify</span>
+      <span style="border-left:2px solid #64a0ff;padding-left:5px;">2nd Qualify</span>
+    </div></div>`;
+}
+
+function renderMatchCard(match,teams,adminMode){
+  const t1=teams.find(t=>t.id===match.team1_id)||{name:"TBD"};
+  const t2=teams.find(t=>t.id===match.team2_id)||{name:"TBD"};
+  const done=match.status==="completed";
+  const w1=match.winner_id===match.team1_id,w2=match.winner_id===match.team2_id;
+  const scoreHtml=done
+    ?`<div><div class="m-score">${match.team1_sets}–${match.team2_sets}</div><div class="m-det">${match.score_detail||""}</div></div>`
+    :`<div class="m-score pend">vs</div>`;
+  const editBtn=adminMode&&isAdmin&&match.team1_id&&match.team2_id
+    ?`<button class="btn btn-sm ${done?"":"btn-accent"}" onclick="openScoreModal('${match.id}')">${done?"Edit":"Score"}</button>`:"";
+  const t1span=match.team1_id&&t1.id?`<span class="clickable-name" onclick="openTeamProfileModal('${match.team1_id}')">${esc(t1.name)}</span>`:esc(t1.name);
+  const t2span=match.team2_id&&t2.id?`<span class="clickable-name" onclick="openTeamProfileModal('${match.team2_id}')">${esc(t2.name)}</span>`:esc(t2.name);
+  return `<div class="m-card">
+    <div class="m-team ${done?(w1?"m-win":"m-lose"):""}">${t1span}</div>
+    ${scoreHtml}
+    <div class="m-team r ${done?(w2?"m-win":"m-lose"):""}">${t2span}</div>
+    ${editBtn}
+  </div>`;
+}
+
+function renderBracket(matches,teams){
+  const stages=["quarter_final","semi_final","final"];
+  const sl={quarter_final:"Quarter Finals",semi_final:"Semi Finals",final:"Final"};
+  const present=stages.filter(s=>matches.some(m=>m.stage===s));
+  let html=`<div class="bracket-wrap"><div class="bracket">`;
+  for(const stage of present){
+    const sm=matches.filter(m=>m.stage===stage);
+    html+=`<div class="br-round"><div class="br-round-title">${sl[stage]}</div>`;
+    for(const m of sm){
+      const t1=m.team1_id?(teams.find(t=>t.id===m.team1_id)||{name:"TBD"}):{name:"TBD"};
+      const t2=m.team2_id?(teams.find(t=>t.id===m.team2_id)||{name:"TBD"}):{name:"TBD"};
+      const c1=m.status==="completed"?(m.winner_id===m.team1_id?"win":"lose"):(!m.team1_id?"tbd":"");
+      const c2=m.status==="completed"?(m.winner_id===m.team2_id?"win":"lose"):(!m.team2_id?"tbd":"");
+      const bt1click=m.team1_id?`onclick="openTeamProfileModal('${m.team1_id}')" style="cursor:pointer;"`:"";
+      const bt2click=m.team2_id?`onclick="openTeamProfileModal('${m.team2_id}')" style="cursor:pointer;"`:"";
+      html+=`<div class="br-match">
+        <div class="br-team ${c1}" ${bt1click}><span>${esc(t1.name)}</span>${m.status==="completed"?`<span class="br-sets">${m.team1_sets??""}</span>`:""}</div>
+        <div class="br-team ${c2}" ${bt2click}><span>${esc(t2.name)}</span>${m.status==="completed"?`<span class="br-sets">${m.team2_sets??""}</span>`:""}</div>
+      </div>`;
+    }
+    html+=`</div>`;
+  }
+  html+=`</div></div>`;
+  return html;
+}
+
+// ── RANKINGS ──────────────────────────────────────────────────────────
+let rankedPlayers = []; // players who have actually participated
+async function renderRankings(){
+  // Show all players who have at least one approved registration
+  try{
+    const approvedTeams=await db.get("teams","registration_status=eq.approved&select=player1_id,player2_id");
+    const qualifiedIds=new Set();
+    for(const t of approvedTeams){if(t.player1_id)qualifiedIds.add(t.player1_id);if(t.player2_id)qualifiedIds.add(t.player2_id);}
+    rankedPlayers=allPlayers.filter(p=>qualifiedIds.has(p.id)).sort((a,b)=>b.total_points-a.total_points||b.titles-a.titles);
+  }catch(e){rankedPlayers=allPlayers.filter(p=>p.total_points>0||p.titles>0).sort((a,b)=>b.total_points-a.total_points);}
+  const countEl=document.getElementById("rankings-count");
+  if(countEl)countEl.textContent=rankedPlayers.length?`${rankedPlayers.length} player${rankedPlayers.length!==1?"s":""}`:"";
+  filterRankings(document.getElementById("rankSearch")?.value||"");
+}
+function filterRankings(query){
+  const el=document.getElementById("rankings-list");
+  if(!el)return;
+  const q=query.toLowerCase().trim();
+  const filtered=q?rankedPlayers.filter(p=>p.name.toLowerCase().includes(q)):rankedPlayers;
+  if(!filtered.length){
+    el.innerHTML=`<div class="empty"><div class="empty-icon">🎾</div><div class="empty-title">${q?"No results":"No ranked players yet"}</div><div class="empty-sub">${q?"Try a different name":"Players appear here after joining a tournament"}</div></div>`;
+    return;
+  }
+  el.innerHTML=filtered.map((p,i)=>{
+    const globalIdx=rankedPlayers.indexOf(p);
+    return `<div class="rank-row" style="justify-content:space-between;cursor:pointer;" onclick="openPlayerProfileModal('${p.id}',false)">
+      <div class="rank-pos ${globalIdx===0?"p1":globalIdx===1?"p2":globalIdx===2?"p3":""}">${globalIdx+1}</div>
+      <div style="flex:1;min-width:0;">
+        <div class="rank-name">${esc(p.name)}</div>
+        ${p.titles>0?`<div style="font-size:11px;color:var(--yellow);">🏆 ${p.titles} title${p.titles>1?"s":""}</div>`:""}
+      </div>
+      <div style="text-align:right;display:flex;align-items:center;gap:10px;">
+        <div><div class="rank-pts">${p.total_points}</div><div style="font-size:11px;color:var(--white50);">points</div></div>
+        ${isAdmin?`<button class="btn btn-sm" onclick="event.stopPropagation();openEditPointsModal('${p.id}','${esc(p.name)}',${p.total_points})" title="Edit points">✏</button>`:""}
+        ${isAdmin?`<button class="btn btn-sm btn-danger" onclick="event.stopPropagation();deletePlayer('${p.id}','${esc(p.name)}')">✕</button>`:""}
+      </div>
+    </div>`;
+  }).join("");
+}
+
+// ── TIEBREAKER SORT (3-way) ──────────────────────────────────────────
+function sortGroupTeams(gts, allMatches){
+  // Primary: points desc
+  // 3-way tie resolution:
+  // 1. game difference (games_for - games_against) — highest first
+  // 2. if one has lowest game diff → ranked last; remaining 2 use head-to-head
+  // 3. if all same game diff → total games won
+  // 4. if one has lowest games won → ranked last; remaining 2 use head-to-head
+  // 5. still equal → admin decides (return as-is, flag with *)
+  gts.sort((a,b)=>{
+    if(b.points!==a.points)return b.points-a.points;
+    // same points — find all tied at this points level
+    return 0;
+  });
+  // resolve ties group by group
+  let result=[];
+  let i=0;
+  while(i<gts.length){
+    const pts=gts[i].points;
+    let j=i;
+    while(j<gts.length&&gts[j].points===pts)j++;
+    const group=gts.slice(i,j);
+    if(group.length<=1){result.push(...group);i=j;continue;}
+    if(group.length===2){
+      // head to head
+      const h2h=getHeadToHead(group[0].team_id,group[1].team_id,allMatches);
+      if(h2h===1)result.push(group[0],group[1]);
+      else if(h2h===-1)result.push(group[1],group[0]);
+      else{
+        // game diff
+        const gd0=(group[0].games_for-group[0].games_against),gd1=(group[1].games_for-group[1].games_against);
+        if(gd0>=gd1)result.push(group[0],group[1]);else result.push(group[1],group[0]);
+      }
+      i=j;continue;
+    }
+    if(group.length===3){
+      // 3-way
+      const gds=group.map(g=>g.games_for-g.games_against);
+      const minGD=Math.min(...gds);
+      const minGDCount=gds.filter(g=>g===minGD).length;
+      if(minGDCount===1){
+        // one team has lowest GD → ranked last; other 2 use head-to-head
+        const lastIdx=gds.indexOf(minGD);
+        const last=group[lastIdx];
+        const top2=group.filter((_,k)=>k!==lastIdx);
+        const h2h=getHeadToHead(top2[0].team_id,top2[1].team_id,allMatches);
+        if(h2h===-1)top2.reverse();
+        result.push(...top2,last);i=j;continue;
+      }
+      // all same GD → games won
+      const gws=group.map(g=>g.games_for);
+      const minGW=Math.min(...gws);
+      const minGWCount=gws.filter(g=>g===minGW).length;
+      if(minGWCount===1){
+        const lastIdx=gws.indexOf(minGW);
+        const last=group[lastIdx];
+        const top2=group.filter((_,k)=>k!==lastIdx);
+        const h2h=getHeadToHead(top2[0].team_id,top2[1].team_id,allMatches);
+        if(h2h===-1)top2.reverse();
+        result.push(...top2,last);i=j;continue;
+      }
+      // Still tied — mark and let admin decide
+      group.forEach(g=>g._tieFlag=true);
+      result.push(...group);i=j;continue;
+    }
+    // 4+ way tie — sort by game diff then games for
+    group.sort((a,b)=>{
+      const gdA=a.games_for-a.games_against,gdB=b.games_for-b.games_against;
+      if(gdB!==gdA)return gdB-gdA;
+      return b.games_for-a.games_for;
+    });
+    result.push(...group);i=j;
+  }
+  return result;
+}
+function getHeadToHead(teamAId,teamBId,matches){
+  const m=matches.find(m=>m.status==="completed"&&((m.team1_id===teamAId&&m.team2_id===teamBId)||(m.team1_id===teamBId&&m.team2_id===teamAId)));
+  if(!m)return 0;
+  if(m.winner_id===teamAId)return 1;
+  if(m.winner_id===teamBId)return -1;
+  return 0;
+}
+
+// ── MANUAL GROUP TABLE EDIT (admin) ──────────────────────────────────
+async function openGroupEdit(groupId, groupName){
+  const gts=await db.get("group_teams",`group_id=eq.${groupId}`);
+  const teams=await Promise.all(gts.map(gt=>db.get("teams",`id=eq.${gt.team_id}`)));
+  const teamMap={};teams.forEach(r=>{if(r[0])teamMap[r[0].id]=r[0].name;});
+  let rows=gts.map(gt=>`
+    <div class="gt-edit-row" data-id="${gt.id}">
+      <span style="font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(teamMap[gt.team_id]||"?")}</span>
+      <input type="number" class="gte-p" value="${gt.played}" min="0" title="Played">
+      <input type="number" class="gte-w" value="${gt.won}" min="0" title="Won">
+      <input type="number" class="gte-l" value="${gt.lost}" min="0" title="Lost">
+      <input type="number" class="gte-gf" value="${gt.games_for}" min="0" title="Games For">
+      <input type="number" class="gte-ga" value="${gt.games_against}" min="0" title="Games Against">
+    </div>`).join("");
+  // Show in a modal dynamically created
+  const existing=document.getElementById("groupEditModal");
+  if(existing)existing.remove();
+  const modal=document.createElement("div");
+  modal.id="groupEditModal";
+  modal.className="overlay open";
+  modal.innerHTML=`<div class="modal" style="max-width:560px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <div class="modal-title" style="margin-bottom:0;">Edit ${esc(groupName)}</div>
+      <button class="btn btn-sm" onclick="document.getElementById('groupEditModal').remove()">✕</button>
+    </div>
+    <div style="font-size:11px;color:var(--white50);margin-bottom:10px;display:grid;grid-template-columns:1fr 50px 50px 50px 60px 60px;gap:6px;">
+      <span>Team</span><span style="text-align:center">P</span><span style="text-align:center">W</span><span style="text-align:center">L</span><span style="text-align:center">GF</span><span style="text-align:center">GA</span>
+    </div>
+    <div id="gtEditRows">${rows}</div>
+    <div style="font-size:11px;color:var(--white50);margin-top:6px;">P=Played W=Won L=Lost GF=Games For GA=Games Against. Points = Wins × 3</div>
+    <div class="modal-actions">
+      <button class="btn" onclick="document.getElementById('groupEditModal').remove()">Cancel</button>
+      <button class="btn btn-accent" onclick="saveGroupEdit('${groupId}')">Save Changes</button>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+}
+async function saveGroupEdit(groupId){
+  const rows=document.querySelectorAll("#gtEditRows .gt-edit-row");
+  try{
+    for(const row of rows){
+      const id=row.dataset.id;
+      const p=parseInt(row.querySelector(".gte-p").value)||0;
+      const w=parseInt(row.querySelector(".gte-w").value)||0;
+      const l=parseInt(row.querySelector(".gte-l").value)||0;
+      const gf=parseInt(row.querySelector(".gte-gf").value)||0;
+      const ga=parseInt(row.querySelector(".gte-ga").value)||0;
+      await db.patch("group_teams",`id=eq.${id}`,{played:p,won:w,lost:l,games_for:gf,games_against:ga,points:w*3});
+    }
+    document.getElementById("groupEditModal").remove();
+    toast("Group table updated!");await loadAdminData();loadManage();
+  }catch(e){toast("Error: "+e.message,"err");}
+}
+
+// ── DELETE PLAYER (from Rankings) ────────────────────────────────────
+async function deletePlayer(playerId, playerName){
+  if(!isAdmin){toast("Admin only","err");return;}
+  if(!confirm(`Permanently delete player "${playerName}"? This will remove them from all teams and rankings. This cannot be undone.`))return;
+  try{
+    // Nullify player references in teams (FK constraint fix)
+    await db.patch("teams",`player1_id=eq.${playerId}`,{player1_id:null});
+    await db.patch("teams",`player2_id=eq.${playerId}`,{player2_id:null});
+    // Delete ranking history and player record
+    await db.del("ranking_history",`player_id=eq.${playerId}`);
+    await db.del("players",`id=eq.${playerId}`);
+    toast(`${playerName} deleted`);
+    await loadAll();
+  }catch(e){toast("Error: "+e.message,"err");}
+}
+
+// ── EDIT PLAYER PROFILE (admin) ───────────────────────────────────────
+async function openEditPlayerModal(playerId){
+  const players=await db.get("players",`id=eq.${playerId}`);
+  if(!players.length)return;
+  const p=players[0];
+  const existing=document.getElementById("editPlayerModal");
+  if(existing)existing.remove();
+  const modal=document.createElement("div");
+  modal.id="editPlayerModal";
+  modal.className="overlay open";
+  modal.innerHTML=`<div class="modal" style="max-width:420px;">
+    <div class="modal-title">Edit Player Profile</div>
+    <div class="form-group"><label class="form-label">Name</label><input type="text" id="epl-name" value="${esc(p.name)}"></div>
+    <div class="form-group"><label class="form-label">Phone</label><input type="text" id="epl-phone" value="${esc(p.phone||'')}"></div>
+    <div class="form-group"><label class="form-label">Email</label><input type="text" id="epl-email" value="${esc(p.email||'')}" placeholder="(read-only for auth users)" readonly style="opacity:.6;cursor:not-allowed;"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Total Points</label><input type="number" id="epl-pts" value="${p.total_points||0}" min="0"></div>
+      <div class="form-group"><label class="form-label">Titles</label><input type="number" id="epl-titles" value="${p.titles||0}" min="0"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-danger" onclick="document.getElementById('editPlayerModal').remove();deletePlayer('${p.id}','${esc(p.name)}')">🗑 Delete</button>
+      <button class="btn" onclick="document.getElementById('editPlayerModal').remove()">Cancel</button>
+      <button class="btn btn-accent" onclick="saveEditPlayer('${p.id}')">Save</button>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+}
+async function saveEditPlayer(playerId){
+  const name=document.getElementById("epl-name").value.trim();
+  const phone=document.getElementById("epl-phone").value.trim();
+  const pts=parseInt(document.getElementById("epl-pts").value)||0;
+  const titles=parseInt(document.getElementById("epl-titles").value)||0;
+  if(!name){toast("Name cannot be empty","err");return;}
+  try{
+    await db.patch("players",`id=eq.${playerId}`,{name,phone:phone||null,total_points:pts,titles});
+    document.getElementById("editPlayerModal").remove();
+    toast("Player updated!");
+    await loadAll();
+    if(isAdmin)renderAdminPlayersList();
+  }catch(e){toast("Error: "+e.message,"err");}
+}
+
+// ── EDIT PLAYER POINTS from Rankings ─────────────────────────────────
+function openEditPointsModal(playerId, playerName, currentPts){
+  const existing=document.getElementById("editPtsModal");
+  if(existing)existing.remove();
+  const modal=document.createElement("div");
+  modal.id="editPtsModal";
+  modal.className="overlay open";
+  modal.innerHTML=`<div class="modal" style="max-width:340px;">
+    <div class="modal-title">Edit Points — ${esc(playerName)}</div>
+    <div class="form-group"><label class="form-label">Total Points</label><input type="number" id="ept-pts" value="${currentPts}" min="0" autofocus></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="document.getElementById('editPtsModal').remove()">Cancel</button>
+      <button class="btn btn-accent" onclick="saveEditPoints('${playerId}')">Save</button>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+}
+async function saveEditPoints(playerId){
+  const pts=parseInt(document.getElementById("ept-pts").value);
+  if(isNaN(pts)||pts<0){toast("Invalid points value","err");return;}
+  try{
+    await db.patch("players",`id=eq.${playerId}`,{total_points:pts});
+    document.getElementById("editPtsModal").remove();
+    toast("Points updated!");
+    await loadAll();
+  }catch(e){toast("Error: "+e.message,"err");}
+}
+
+// ── ADMIN DATA ────────────────────────────────────────────────────────
+async function loadAdminData(){
+  await loadAll();
+  populateAdminSelects();
+  refreshAdminTeams();
+  loadPendingRegs();
+  renderAdminPlayersList();
+  if(allTourneys.length)loadManage();
+}
+async function renderAdminPlayersList(){
+  const el=document.getElementById("admin-players-list");if(!el)return;
+  if(!allPlayers.length){el.innerHTML="<div style='color:var(--white50);font-size:13px;'>No players yet</div>";return;}
+  el.innerHTML=allPlayers.map(p=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);">
+    <div style="cursor:pointer;" onclick="openPlayerProfileModal('${p.id}',true)">
+      <div style="font-weight:500;font-size:13px;">👤 ${esc(p.name)}</div>
+      <div style="font-size:11px;color:var(--white50);">${p.email||"—"} ${p.phone?`· 📞 ${esc(p.phone)}`:""}</div>
+    </div>
+    <div style="text-align:right;">
+      <div style="font-family:'DM Mono',monospace;color:var(--yellow);font-size:13px;">${p.total_points||0} pts</div>
+      <div style="font-size:11px;color:var(--white50);">${p.titles||0} titles</div>
+    </div>
+  </div>`).join("");
+}
+
+function populateAdminSelects(){
+  const opts=allTourneys.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join("");
+  ["team-tid","reg-tid","manage-tid"].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.innerHTML=opts||"<option value=''>No tournaments</option>";
+  });
+}
+
+async function refreshAdminTeams(){
+  const tid=document.getElementById("team-tid")?.value;
+  const el=document.getElementById("admin-teams");if(!el)return;
+  if(!tid){el.innerHTML="<div style='color:var(--white50);font-size:13px;'>Select a tournament</div>";return;}
+  const teams=await db.get("teams",`tournament_id=eq.${tid}&order=name.asc`);
+  if(!teams.length){el.innerHTML="<div style='color:var(--white50);font-size:13px;'>No teams yet</div>";return;}
+  el.innerHTML=teams.map(t=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);">
+    <div><div style="font-weight:500;font-size:13px;">${esc(t.name)}</div>
+    <div style="font-size:11px;color:var(--white50);">${t.player1_phone||""} | ${t.player2_phone||""}</div></div>
+    <div style="display:flex;gap:6px;">
+      <button class="btn btn-sm" onclick="openEditTeam('${t.id}')">Edit</button>
+      <button class="btn btn-sm btn-danger" onclick="deleteTeamDirect('${t.id}','${esc(t.name)}')">Delete</button>
+    </div>
+  </div>`).join("");
+}
+
+// ── CREATE TOURNAMENT ─────────────────────────────────────────────────
+async function createTournament(){
+  const name=document.getElementById("nt-name").value.trim();
+  if(!name){toast("Enter a tournament name","err");return;}
+  const body={name,status:"registration",
+    location:document.getElementById("nt-loc").value.trim()||null,
+    match_datetime:document.getElementById("nt-dt").value||null,
+    entry_fee:parseInt(document.getElementById("nt-fee").value)||0,
+    max_teams:parseInt(document.getElementById("nt-max").value)||16,
+    prize:document.getElementById("nt-prize").value.trim()||null,
+    registration_form_url:document.getElementById("nt-form").value.trim()||null,
+  };
+  try{await db.post("tournaments",body);
+    ["nt-name","nt-loc","nt-dt","nt-fee","nt-prize","nt-form"].forEach(id=>{document.getElementById(id).value="";});
+    document.getElementById("nt-max").value="16";
+    toast("Tournament created!");await loadAdminData();
+  }catch(e){toast("Error: "+e.message,"err");}
+}
+
+// ── ADD TEAM ──────────────────────────────────────────────────────────
+async function addTeam(){
+  const tid=document.getElementById("team-tid").value;
+  const p1=document.getElementById("tp1").value.trim();
+  const p2=document.getElementById("tp2").value.trim();
+  const ph1=document.getElementById("tp1ph").value.trim();
+  const ph2=document.getElementById("tp2ph").value.trim();
+  if(!tid){toast("Select a tournament","err");return;}
+  if(!p1||!p2){toast("Enter both player names","err");return;}
+  if(p1.toLowerCase()===p2.toLowerCase()){toast("Players must be different","err");return;}
+  try{
+    let pl1=allPlayers.find(p=>p.name.toLowerCase()===p1.toLowerCase());
+    if(!pl1){const r=await db.post("players",{name:p1,total_points:0,titles:0});pl1=r[0];}
+    let pl2=allPlayers.find(p=>p.name.toLowerCase()===p2.toLowerCase());
+    if(!pl2){const r=await db.post("players",{name:p2,total_points:0,titles:0});pl2=r[0];}
+    const teamName=`${p1} / ${p2}`;
+    await db.post("teams",{tournament_id:tid,name:teamName,player1_id:pl1.id,player2_id:pl2.id,player1_phone:ph1||null,player2_phone:ph2||null,registration_status:"approved"});
+    ["tp1","tp2","tp1ph","tp2ph"].forEach(id=>{document.getElementById(id).value="";});
+    toast(`Team "${teamName}" registered!`);await loadAdminData();refreshAdminTeams();
+  }catch(e){toast("Error: "+e.message,"err");}
+}
+
+// ── EDIT TEAM ─────────────────────────────────────────────────────────
+async function openEditTeam(teamId){
+  const team=allTeams.find(t=>t.id===teamId)||(await db.get("teams",`id=eq.${teamId}`))[0];
+  if(!team){toast("Team not found","err");return;}
+  curEditTeam=team;
+  const p1=allPlayers.find(p=>p.id===team.player1_id)||{name:""};
+  const p2=allPlayers.find(p=>p.id===team.player2_id)||{name:""};
+  document.getElementById("editTeamBody").innerHTML=`
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Player 1 Name</label><input type="text" id="et-p1" value="${esc(p1.name)}"></div>
+      <div class="form-group"><label class="form-label">Player 2 Name</label><input type="text" id="et-p2" value="${esc(p2.name)}"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Player 1 Phone</label><input type="text" id="et-ph1" value="${esc(team.player1_phone||"")}"></div>
+      <div class="form-group"><label class="form-label">Player 2 Phone</label><input type="text" id="et-ph2" value="${esc(team.player2_phone||"")}"></div>
+    </div>`;
+  openModal("editTeamModal");
+}
+async function saveTeam(){
+  const p1n=document.getElementById("et-p1").value.trim();
+  const p2n=document.getElementById("et-p2").value.trim();
+  const ph1=document.getElementById("et-ph1").value.trim();
+  const ph2=document.getElementById("et-ph2").value.trim();
+  if(!p1n||!p2n){toast("Enter both names","err");return;}
+  try{
+    if(curEditTeam.player1_id)await db.patch("players",`id=eq.${curEditTeam.player1_id}`,{name:p1n});
+    if(curEditTeam.player2_id)await db.patch("players",`id=eq.${curEditTeam.player2_id}`,{name:p2n});
+    const newName=`${p1n} / ${p2n}`;
+    await db.patch("teams",`id=eq.${curEditTeam.id}`,{name:newName,player1_phone:ph1||null,player2_phone:ph2||null});
+    closeModal("editTeamModal");toast("Team updated!");await loadAdminData();refreshAdminTeams();
+  }catch(e){toast("Error: "+e.message,"err");}
+}
+async function deleteTeam(){
+  if(!confirm("Delete this team?"))return;
+  try{await db.del("teams",`id=eq.${curEditTeam.id}`);closeModal("editTeamModal");toast("Team deleted");await loadAdminData();refreshAdminTeams();}
+  catch(e){toast("Error: "+e.message,"err");}
+}
+async function deleteTeamDirect(teamId,teamName){
+  if(!confirm(`Delete team "${teamName}"? This cannot be undone.`))return;
+  try{await db.del("teams",`id=eq.${teamId}`);toast("Team deleted");await loadAdminData();refreshAdminTeams();}
+  catch(e){toast("Error: "+e.message,"err");}
+}
+
+// ── EDIT TOURNAMENT ───────────────────────────────────────────────────
+async function openEditTourney(id){
+  const t=allTourneys.find(x=>x.id===id)||(await db.get("tournaments",`id=eq.${id}`))[0];
+  if(!t)return;curEditTourney=t;
+  document.getElementById("editTourneyBody").innerHTML=`
+    <div class="form-group"><label class="form-label">Name</label><input type="text" id="et-name" value="${esc(t.name)}"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Location</label><input type="text" id="et-loc" value="${esc(t.location||"")}"></div>
+      <div class="form-group"><label class="form-label">Date & Time</label><input type="datetime-local" id="et-dt" value="${t.match_datetime?t.match_datetime.slice(0,16):""}"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Entry Fee (EGP)</label><input type="number" id="et-fee" value="${t.entry_fee||0}"></div>
+      <div class="form-group"><label class="form-label">Max Teams</label><input type="number" id="et-max" value="${t.max_teams||16}"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Prize</label><input type="text" id="et-prize" value="${esc(t.prize||"")}"></div>
+    <div class="form-group"><label class="form-label">Registration Form URL</label><input type="text" id="et-form" value="${esc(t.registration_form_url||"")}"></div>
+    <div class="form-group"><label class="form-label">Visibility</label>
+      <select id="et-vis">
+        <option value="public" ${getTourneyVisibilityObj(t)==='public'?'selected':''}>🌐 Public — visible to everyone</option>
+        <option value="private" ${getTourneyVisibilityObj(t)==='private'?'selected':''}>🔒 Private — shows but content locked</option>
+      </select>
+    </div>`;
+  openModal("editTourneyModal");
+}
+async function saveTournament(){
+  const name=document.getElementById("et-name").value.trim();
+  if(!name){toast("Enter a name","err");return;}
+  try{
+    const newVis=document.getElementById("et-vis")?.value||'public';
+    // Save visibility locally (works even without a DB column)
+    setTourneyVisibilityLocal(curEditTourney.id, newVis);
+    // Try saving visibility to DB too (works if column exists)
+    try{
+      await db.patch("tournaments",`id=eq.${curEditTourney.id}`,{
+        name,location:document.getElementById("et-loc").value.trim()||null,
+        match_datetime:document.getElementById("et-dt").value||null,
+        entry_fee:parseInt(document.getElementById("et-fee").value)||0,
+        max_teams:parseInt(document.getElementById("et-max").value)||16,
+        prize:document.getElementById("et-prize").value.trim()||null,
+        registration_form_url:document.getElementById("et-form").value.trim()||null,
+        visibility:newVis,
+      });
+    }catch(e){
+      // If visibility column doesn't exist, retry without it
+      await db.patch("tournaments",`id=eq.${curEditTourney.id}`,{
+        name,location:document.getElementById("et-loc").value.trim()||null,
+        match_datetime:document.getElementById("et-dt").value||null,
+        entry_fee:parseInt(document.getElementById("et-fee").value)||0,
+        max_teams:parseInt(document.getElementById("et-max").value)||16,
+        prize:document.getElementById("et-prize").value.trim()||null,
+        registration_form_url:document.getElementById("et-form").value.trim()||null,
+      });
+    }
+    closeModal("editTourneyModal");toast("Tournament updated!");await loadAdminData();
+  }catch(e){toast("Error: "+e.message,"err");}
+}
+async function deleteTournament(){
+  if(!confirm(`Delete "${curEditTourney.name}"? This cannot be undone.`))return;
+  try{await db.del("tournaments",`id=eq.${curEditTourney.id}`);closeModal("editTourneyModal");toast("Tournament deleted");await loadAdminData();}
+  catch(e){toast("Error: "+e.message,"err");}
+}
+
+// ── PENDING REGISTRATIONS ─────────────────────────────────────────────
+async function loadPendingRegs(){
+  const tid=document.getElementById("reg-tid")?.value;
+  const el=document.getElementById("pending-regs");if(!el)return;
+  if(!tid){el.innerHTML="";return;}
+  const regs=await db.get("registrations",`tournament_id=eq.${tid}&status=eq.pending&order=created_at.asc`);
+  if(!regs.length){el.innerHTML=`<div style="color:var(--white50);font-size:13px;margin-top:8px;">No pending registrations</div>`;return;}
+  el.innerHTML=regs.map(r=>`<div class="reg-card">
+    <div class="reg-name">${esc(r.player1_name)} / ${esc(r.player2_name)}</div>
+    <div class="reg-meta">📞 ${esc(r.player1_phone)} | ${esc(r.player2_phone)}</div>
+    <div class="reg-meta">💳 ${esc(r.payment_method||"—")} &nbsp;·&nbsp; ${formatDate(r.created_at)}</div>
+    <div class="reg-actions">
+      <button class="btn btn-sm btn-green" onclick="approveReg('${r.id}','${tid}','${esc(r.player1_name)}','${esc(r.player2_name)}','${esc(r.player1_phone)}','${esc(r.player2_phone)}')">✓ Approve</button>
+      <button class="btn btn-sm btn-danger" onclick="rejectReg('${r.id}')">✕ Reject</button>
+    </div>
+  </div>`).join("");
+}
+async function approveReg(regId,tid,p1n,p2n,ph1,ph2){
+  try{
+    let pl1=allPlayers.find(p=>p.name.toLowerCase()===p1n.toLowerCase());
+    if(!pl1){const r=await db.post("players",{name:p1n,total_points:0,titles:0});pl1=r[0];}
+    let pl2=allPlayers.find(p=>p.name.toLowerCase()===p2n.toLowerCase());
+    if(!pl2){const r=await db.post("players",{name:p2n,total_points:0,titles:0});pl2=r[0];}
+    await db.post("teams",{tournament_id:tid,name:`${p1n} / ${p2n}`,player1_id:pl1.id,player2_id:pl2.id,player1_phone:ph1||null,player2_phone:ph2||null,registration_status:"approved"});
+    await db.patch("registrations",`id=eq.${regId}`,{status:"approved"});
+    toast("Team approved and added!");await loadAdminData();loadPendingRegs();
+  }catch(e){toast("Error: "+e.message,"err");}
+}
+async function rejectReg(regId){
+  if(!confirm("Reject this registration?"))return;
+  try{await db.patch("registrations",`id=eq.${regId}`,{status:"rejected"});toast("Registration rejected","info");loadPendingRegs();}
+  catch(e){toast("Error: "+e.message,"err");}
+}
+
+// ── MANAGE TOURNAMENT ─────────────────────────────────────────────────
+async function loadManage(){
+  const tid=document.getElementById("manage-tid")?.value;
+  const el=document.getElementById("manage-panel");if(!el||!tid)return;
+  el.innerHTML=`<div class="spin" style="margin-top:12px;"></div>`;
+  try{
+    const [ts,teams,groups,matches]=await Promise.all([
+      db.get("tournaments",`id=eq.${tid}`),
+      db.get("teams",`tournament_id=eq.${tid}&order=name.asc`),
+      db.get("groups",`tournament_id=eq.${tid}&order=name.asc`),
+      db.get("matches",`tournament_id=eq.${tid}&order=match_number.asc`),
+    ]);
+    const t=ts[0];if(!t){el.innerHTML="";return;}
+    let html=`<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0;">
+      <span class="badge b-gray">${t.status}</span>
+      <span class="badge ${getTourneyVisibilityObj(t)==='private'?'b-private':'b-green'}">${getTourneyVisibilityObj(t)==='private'?'🔒 Private':'🌐 Public'}</span>
+      <span style="font-size:13px;color:var(--white50);">${teams.filter(x=>x.registration_status==='approved').length} teams</span>
+      <button class="btn btn-sm" onclick="openEditTourney('${t.id}')">✏ Edit</button>
+      ${getTourneyVisibilityObj(t)==='private'
+        ?`<button class="btn btn-sm btn-accent" onclick="setTourneyVisibility('${t.id}','public')">🌐 Make Public</button>`
+        :`<button class="btn btn-sm" onclick="setTourneyVisibility('${t.id}','private')">🔒 Make Private</button>`}
+    </div>`;
+
+    if(t.status==="registration"){
+      html+=teams.length>=4
+        ?`<button class="btn btn-accent" onclick="startGroups('${tid}')">▶ Start Group Stage (${teams.length} teams)</button>`
+        :`<div style="color:var(--white50);font-size:13px;">Need at least 4 teams to start (currently ${teams.length})</div>`;
+    }
+
+    if(t.status==="group_stage"){
+      const gts=await db.get("group_teams","select=*");
+      html+=`<button class="btn btn-sm" style="margin-bottom:12px;" onclick="openMoveTeamModal('${tid}')">↔ Move Teams Between Groups</button>`;
+      for(const g of groups){
+        html+=`<div style="display:flex;justify-content:space-between;align-items:center;margin:10px 0 4px;">
+          <div style="font-size:12px;font-weight:600;color:var(--white50);letter-spacing:1px;text-transform:uppercase;">${esc(g.name)}</div>
+          <button class="btn btn-sm" onclick="openGroupEdit('${g.id}','${esc(g.name)}')">✏ Edit Table</button>
+        </div>`;
+        html+=matches.filter(m=>m.group_id===g.id).map(m=>renderMatchCard(m,teams,true)).join("");
+      }
+      const allDone=groups.every(g=>matches.filter(m=>m.group_id===g.id).every(m=>m.status==="completed")&&matches.filter(m=>m.group_id===g.id).length>0);
+      if(allDone)html+=`<hr class="div"><button class="btn btn-accent" onclick="advanceKnockout('${tid}')">Advance to Knockout →</button>`;
+    }
+
+    if(t.status==="knockout"){
+      const ko=matches.filter(m=>!m.group_id);
+      const stages=["quarter_final","semi_final","final"];
+      const sl={quarter_final:"Quarter Finals",semi_final:"Semi Finals",final:"Final"};
+      for(const stage of stages){
+        const sm=ko.filter(m=>m.stage===stage);if(!sm.length)continue;
+        html+=`<div style="font-size:12px;font-weight:600;color:var(--white50);letter-spacing:1px;text-transform:uppercase;margin:10px 0 6px;">${sl[stage]}</div>`;
+        html+=sm.map(m=>renderMatchCard(m,teams,true)).join("");
+        const done=sm.every(m=>m.status==="completed");
+        const next=stage==="quarter_final"?"semi_final":stage==="semi_final"?"final":null;
+        const nextExists=next&&ko.some(m=>m.stage===next&&m.team1_id);
+        if(done&&next&&!nextExists)html+=`<button class="btn btn-accent" style="margin:8px 0 14px" onclick="advanceStage('${tid}','${stage}','${next}')">Set up ${sl[next]} →</button>`;
+      }
+      const fin=ko.find(m=>m.stage==="final"&&m.status==="completed");
+      if(fin)html+=`<hr class="div"><button class="btn btn-accent" onclick="completeTourney('${tid}','${fin.winner_id}')">🏆 Complete Tournament</button>`;
+    }
+
+    if(t.status==="completed")html+=`<div style="color:var(--green);font-weight:500;">✓ Tournament completed</div>`;
+    el.innerHTML=html;
+  }catch(e){el.innerHTML=`<div style="color:var(--red);font-size:13px;">${e.message}</div>`;}
+}
+
+// ── START GROUPS ──────────────────────────────────────────────────────
+async function startGroups(tid){
+  try{
+    const teams=await db.get("teams",`tournament_id=eq.${tid}&order=created_at.asc`);
+    const shuffled=[...teams].sort(()=>Math.random()-.5);
+    const numGroups=Math.ceil(shuffled.length/4);
+    const gNames=["Group A","Group B","Group C","Group D","Group E","Group F"];
+    let matchNum=1;
+    for(let g=0;g<numGroups;g++){
+      const gt=shuffled.slice(g*4,(g+1)*4);if(gt.length<2)continue;
+      const grp=await db.post("groups",{tournament_id:tid,name:gNames[g]});
+      const gid=grp[0].id;
+      for(const tm of gt)await db.post("group_teams",{group_id:gid,team_id:tm.id,played:0,won:0,lost:0,sets_for:0,sets_against:0,games_for:0,games_against:0,points:0});
+      for(let i=0;i<gt.length;i++)for(let j=i+1;j<gt.length;j++)
+        await db.post("matches",{tournament_id:tid,group_id:gid,stage:"group",match_number:matchNum++,team1_id:gt[i].id,team2_id:gt[j].id,status:"pending"});
+    }
+    await db.patch("tournaments",`id=eq.${tid}`,{status:"group_stage"});
+    toast("Group stage started!");await loadAdminData();loadManage();
+  }catch(e){toast("Error: "+e.message,"err");}
+}
+
+// ── SCORE MODAL ───────────────────────────────────────────────────────
+async function openScoreModal(matchId){
+  const matches=await db.get("matches",`id=eq.${matchId}`);
+  const m=matches[0];if(!m)return;curScoreMatch=m;
+  const tids=[m.team1_id,m.team2_id].filter(Boolean);
+  const teams=tids.length?await db.get("teams",`id=in.(${tids.join(",")})`):[]; 
+  const t1=teams.find(t=>t.id===m.team1_id)||{name:"Team 1"};
+  const t2=teams.find(t=>t.id===m.team2_id)||{name:"Team 2"};
+  document.getElementById("scoreTitle").textContent=`Score — ${stageName(m.stage)}`;
+  document.getElementById("scoreBody").innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <div style="font-weight:600;font-size:15px;">${esc(t1.name)}</div>
+      <div style="font-size:12px;color:var(--white50);">vs</div>
+      <div style="font-weight:600;font-size:15px;text-align:right;">${esc(t2.name)}</div>
+    </div>
+    <div class="form-row" style="margin-bottom:12px;">
+      <div class="form-group"><label class="form-label">${esc(t1.name)} — Games Won</label><input type="number" id="sc-s1" min="0" max="99" value="${m.team1_sets??""}" placeholder="0"></div>
+      <div class="form-group"><label class="form-label">${esc(t2.name)} — Games Won</label><input type="number" id="sc-s2" min="0" max="99" value="${m.team2_sets??""}" placeholder="0"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Score Detail (optional)</label><input type="text" id="sc-det" value="${m.score_detail||""}" placeholder="e.g. 6-4, 3-6, 10-7"></div>`;
+  openModal("scoreModal");
+}
+async function submitScore(){
+  const m=curScoreMatch;if(!m)return;
+  const s1=parseInt(document.getElementById("sc-s1").value);
+  const s2=parseInt(document.getElementById("sc-s2").value);
+  const det=document.getElementById("sc-det").value.trim();
+  if(isNaN(s1)||isNaN(s2)){toast("Enter sets for both teams","err");return;}
+  if(s1===s2){toast("Sets cannot be equal — there must be a winner","err");return;}
+  const winnerId=s1>s2?m.team1_id:m.team2_id;
+  const loserId=s1>s2?m.team2_id:m.team1_id;
+  try{
+    await db.patch("matches",`id=eq.${m.id}`,{team1_sets:s1,team2_sets:s2,score_detail:det||null,winner_id:winnerId,status:"completed"});
+    if(m.group_id)await updateGroupStats(m.group_id,m.team1_id,m.team2_id,s1,s2,winnerId); // s1,s2 = games won by each team
+    await awardPoints(m,winnerId,loserId);
+    closeModal("scoreModal");toast("Score saved!");await loadAdminData();loadManage();
+  }catch(e){toast("Error: "+e.message,"err");}
+}
+async function updateGroupStats(gid,t1id,t2id,g1,g2,winnerId){
+  // g1, g2 = games won by team1 and team2 respectively
+  const gts=await db.get("group_teams",`group_id=eq.${gid}&team_id=in.(${t1id},${t2id})`);
+  for(const gt of gts){
+    const isT1=gt.team_id===t1id;
+    const myG=isT1?g1:g2, oppG=isT1?g2:g1;
+    const won=gt.team_id===winnerId;
+    await db.patch("group_teams",`id=eq.${gt.id}`,{
+      played:gt.played+1,
+      won:gt.won+(won?1:0),
+      lost:gt.lost+(won?0:1),
+      games_for:gt.games_for+myG,
+      games_against:gt.games_against+oppG,
+      points:gt.points+(won?3:0)
+    });
+  }
+}
+async function awardPoints(match,winnerId,loserId){
+  const stage=match.stage;
+  // Point system:
+  // group win = 3pts to winner only (no points for losing a group match)
+  // qualifying (top 2 from group) = 1pt — awarded separately in advanceKnockout
+  // quarter_final win = 2pts, semi_final win = 3pts, final win = 5pts
+  const stagePts={group:1,quarter_final:5,semi_final:7,final:10};
+  const pts=stagePts[stage];if(!pts)return;
+  const wTeams=await db.get("teams",`id=eq.${winnerId}`);if(!wTeams.length)return;
+  const wt=wTeams[0];
+  for(const pid of[wt.player1_id,wt.player2_id]){
+    if(!pid)continue;
+    const ps=await db.get("players",`id=eq.${pid}`);if(!ps.length)continue;
+    await db.patch("players",`id=eq.${pid}`,{total_points:ps[0].total_points+pts});
+    await db.post("ranking_history",{player_id:pid,tournament_id:match.tournament_id,stage,points_awarded:pts});
+  }
+  // No points for loser in group stage — qualifying bonus is given in advanceKnockout
+}
+
+// ── ADVANCE KNOCKOUT ──────────────────────────────────────────────────
+async function advanceKnockout(tid){
+  try{
+    const [groups,gts,teams]=await Promise.all([
+      db.get("groups",`tournament_id=eq.${tid}&order=name.asc`),
+      db.get("group_teams","select=*"),
+      db.get("teams",`tournament_id=eq.${tid}`),
+    ]);
+    let qualifiers=[];
+    const allMatches=await db.get("matches",`tournament_id=eq.${tid}&order=match_number.asc`);
+    for(const g of groups){
+      const gTeams=sortGroupTeams(gts.filter(x=>x.group_id===g.id), allMatches);
+      qualifiers.push({pos:1,group:g.name,teamId:gTeams[0]?.team_id});
+      if(gTeams[1])qualifiers.push({pos:2,group:g.name,teamId:gTeams[1].team_id});
+    }
+    // award qualifying points
+    for(const q of qualifiers){
+      const qt=await db.get("teams",`id=eq.${q.teamId}`);if(!qt.length)continue;
+      const team=qt[0];
+      for(const pid of[team.player1_id,team.player2_id]){
+        if(!pid)continue;
+        const existing=await db.get("ranking_history",`player_id=eq.${pid}&tournament_id=eq.${tid}&stage=eq.group`);
+        if(!existing.length){
+          const ps=await db.get("players",`id=eq.${pid}`);if(!ps.length)continue;
+          await db.patch("players",`id=eq.${pid}`,{total_points:ps[0].total_points+1});
+          await db.post("ranking_history",{player_id:pid,tournament_id:tid,stage:"group",points_awarded:1});
+        }
+      }
+    }
+    let matchNum=100;
+    const numQ=qualifiers.length;
+    if(numQ===4){
+      await db.post("matches",{tournament_id:tid,stage:"semi_final",match_number:matchNum++,team1_id:qualifiers[0].teamId,team2_id:qualifiers[3].teamId,status:"pending"});
+      await db.post("matches",{tournament_id:tid,stage:"semi_final",match_number:matchNum++,team1_id:qualifiers[1].teamId,team2_id:qualifiers[2].teamId,status:"pending"});
+      await db.post("matches",{tournament_id:tid,stage:"final",match_number:matchNum++,team1_id:null,team2_id:null,status:"pending"});
+    } else if(numQ===8){
+      // 4-group bracket: cross-seed so same-group teams can ONLY meet in the final
+      // QF1: 1st A vs 2nd C  |  QF2: 1st B vs 2nd D  → SF1 winner goes to final
+      // QF3: 1st C vs 2nd A  |  QF4: 1st D vs 2nd B  → SF2 winner goes to final
+      // This guarantees: Group A teams separated, Group B separated, etc.
+      const bg={};for(const q of qualifiers)bg[`${q.group}${q.pos}`]=q.teamId;
+      const gn=groups.map(g=>g.name); // [A,B,C,D]
+      const pairs=[
+        [bg[`${gn[0]}1`],bg[`${gn[2]}2`]], // 1st A vs 2nd C
+        [bg[`${gn[1]}1`],bg[`${gn[3]}2`]], // 1st B vs 2nd D
+        [bg[`${gn[2]}1`],bg[`${gn[0]}2`]], // 1st C vs 2nd A
+        [bg[`${gn[3]}1`],bg[`${gn[1]}2`]], // 1st D vs 2nd B
+      ];
+      for(const[t1,t2]of pairs)await db.post("matches",{tournament_id:tid,stage:"quarter_final",match_number:matchNum++,team1_id:t1,team2_id:t2,status:"pending"});
+      for(let i=0;i<2;i++)await db.post("matches",{tournament_id:tid,stage:"semi_final",match_number:matchNum++,team1_id:null,team2_id:null,status:"pending"});
+      await db.post("matches",{tournament_id:tid,stage:"final",match_number:matchNum++,team1_id:null,team2_id:null,status:"pending"});
+    } else {
+      for(let i=0;i<qualifiers.length-1;i+=2)
+        await db.post("matches",{tournament_id:tid,stage:"semi_final",match_number:matchNum++,team1_id:qualifiers[i].teamId,team2_id:qualifiers[i+1]?.teamId,status:"pending"});
+      await db.post("matches",{tournament_id:tid,stage:"final",match_number:matchNum++,team1_id:null,team2_id:null,status:"pending"});
+    }
+    await db.patch("tournaments",`id=eq.${tid}`,{status:"knockout"});
+    toast("Knockout stage set up!");await loadAdminData();loadManage();
+  }catch(e){toast("Error: "+e.message,"err");}
+}
+async function advanceStage(tid,doneStage,nextStage){
+  try{
+    const done=await db.get("matches",`tournament_id=eq.${tid}&stage=eq.${doneStage}&status=eq.completed`);
+    const winners=done.map(m=>m.winner_id);
+    const existing=await db.get("matches",`tournament_id=eq.${tid}&stage=eq.${nextStage}`);
+    if(existing.length===0){
+      let n=200;
+      for(let i=0;i<winners.length;i+=2)
+        await db.post("matches",{tournament_id:tid,stage:nextStage,match_number:n++,team1_id:winners[i],team2_id:winners[i+1]||null,status:"pending"});
+    } else {
+      for(let i=0;i<existing.length;i++)
+        await db.patch("matches",`id=eq.${existing[i].id}`,{team1_id:winners[i*2]||null,team2_id:winners[i*2+1]||null});
+    }
+    toast("Next round ready!");await loadAdminData();loadManage();
+  }catch(e){toast("Error: "+e.message,"err");}
+}
+async function completeTourney(tid,winnerTeamId){
+  try{
+    const wt=await db.get("teams",`id=eq.${winnerTeamId}`);
+    if(wt.length){
+      const team=wt[0];
+      for(const pid of[team.player1_id,team.player2_id]){
+        if(!pid)continue;
+        const ps=await db.get("players",`id=eq.${pid}`);
+        if(ps.length)await db.patch("players",`id=eq.${pid}`,{titles:ps[0].titles+1});
+      }
+    }
+    await db.patch("tournaments",`id=eq.${tid}`,{status:"completed",winner_team_id:winnerTeamId});
+    toast("Tournament completed! 🏆");await loadAdminData();loadManage();
+  }catch(e){toast("Error: "+e.message,"err");}
+}
+
+
+// ── VISIBILITY (stored locally — no DB column needed) ─────────────────
+function getTourneyVisibility(tid){
+  try{return localStorage.getItem(`pa_vis_${tid}`)||'public';}catch(e){return 'public';}
+}
+function setTourneyVisibilityLocal(tid,vis){
+  try{
+    if(vis==='private')localStorage.setItem(`pa_vis_${tid}`,vis);
+    else localStorage.removeItem(`pa_vis_${tid}`);
+  }catch(e){}
+}
+function getTourneyVisibilityObj(t){
+  // Always use DB value — localStorage is only for admin's own session fallback
+  return t.visibility||'public';
+}
+async function setTourneyVisibility(tid,vis){
+  try{
+    await db.patch("tournaments",`id=eq.${tid}`,{visibility:vis});
+    toast(`Tournament set to ${vis==='private'?'🔒 Private':'🌐 Public'}`);
+    await loadAdminData();loadManage();
+  }catch(e){
+    toast("Error: visibility column may be missing in DB. Run: ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS visibility text DEFAULT 'public';","err");
+  }
+}
+
+// ── PLAYER PROFILE MODAL ──────────────────────────────────────────────
+async function openPlayerProfileModal(playerId, showPhone){
+  try{
+    const players=await db.get("players",`id=eq.${playerId}`);
+    if(!players.length)return;
+    const p=players[0];
+    const teams1=await db.get("teams",`player1_id=eq.${p.id}&registration_status=eq.approved`);
+    const teams2=await db.get("teams",`player2_id=eq.${p.id}&registration_status=eq.approved`);
+    const myTeams=[...teams1,...teams2];
+    // Only count tournaments that have actually started (not just registration/pending)
+    const startedTourneyIds=new Set(allTourneys.filter(t=>t.status!=='registration').map(t=>t.id));
+    const tourneyIds=[...new Set(myTeams.map(t=>t.tournament_id).filter(id=>startedTourneyIds.has(id)))];
+    let matchesPlayed=0,gamesWon=0,gamesLost=0;
+    for(const tm of myTeams){
+      const ms1=await db.get("matches",`team1_id=eq.${tm.id}&status=eq.completed`);
+      const ms2=await db.get("matches",`team2_id=eq.${tm.id}&status=eq.completed`);
+      for(const m of [...ms1,...ms2]){
+        matchesPlayed++;
+        const isT1=m.team1_id===tm.id;
+        gamesWon+=(isT1?m.team1_sets:m.team2_sets)||0;
+        gamesLost+=(isT1?m.team2_sets:m.team1_sets)||0;
+      }
+    }
+    document.getElementById("profileModalTitle").textContent=p.name;
+    document.getElementById("profileModalBody").innerHTML=`<div class="profile-card">
+      <div class="profile-avatar-lg">👤</div>
+      <div class="profile-name-lg">${esc(p.name)}</div>
+      ${(showPhone||isAdmin)&&p.phone?`<div style="font-size:12px;color:var(--white50);margin-bottom:10px;">📞 ${esc(p.phone)}</div>`:""}
+      <div class="profile-stat"><span>Tournaments Played</span><span class="profile-stat-val">${tourneyIds.length}</span></div>
+      <div class="profile-stat"><span>Tournaments Won</span><span class="profile-stat-val">🏆 ${p.titles||0}</span></div>
+      <div class="profile-stat"><span>Matches Played</span><span class="profile-stat-val">${matchesPlayed}</span></div>
+      <div class="profile-stat"><span>Matches Won</span><span class="profile-stat-val">${gamesWon}</span></div>
+      <div class="profile-stat"><span>Matches Lost</span><span class="profile-stat-val">${gamesLost}</span></div>
+      <div class="profile-stat"><span>Total Points</span><span class="profile-stat-val">${p.total_points||0} pts</span></div>
+    </div>
+    ${isAdmin?`<div style="display:flex;gap:8px;margin-top:14px;">
+      <button class="btn btn-accent btn-sm" style="flex:1;" onclick="openEditPlayerModal('${p.id}')">✏ Edit Profile</button>
+      <button class="btn btn-danger btn-sm" style="flex:1;" onclick="closeModal('profileModal');deletePlayer('${p.id}','${esc(p.name)}')">🗑 Delete</button>
+    </div>`:''}`;
+    openModal("profileModal");
+  }catch(e){toast("Error loading profile","err");}
+}
+
+async function openTeamProfileModal(teamId){
+  try{
+    const teams=await db.get("teams",`id=eq.${teamId}`);
+    if(!teams.length)return;
+    const team=teams[0];
+    async function buildCard(pid){
+      if(!pid)return`<div class="profile-card"><div class="profile-avatar-lg">👤</div><div class="profile-name-lg">—</div></div>`;
+      const ps=await db.get("players",`id=eq.${pid}`);
+      if(!ps.length)return`<div class="profile-card"><div class="profile-avatar-lg">👤</div><div class="profile-name-lg">Unknown</div></div>`;
+      const p=ps[0];
+      const t1=await db.get("teams",`player1_id=eq.${pid}&registration_status=eq.approved`);
+      const t2=await db.get("teams",`player2_id=eq.${pid}&registration_status=eq.approved`);
+      const myTeams=[...t1,...t2];
+      const tourneyIds=[...new Set(myTeams.map(t=>t.tournament_id))];
+      let matchesPlayed=0,gamesWon=0,gamesLost=0;
+      for(const tm of myTeams){
+        const ms1=await db.get("matches",`team1_id=eq.${tm.id}&status=eq.completed`);
+        const ms2=await db.get("matches",`team2_id=eq.${tm.id}&status=eq.completed`);
+        for(const m of [...ms1,...ms2]){
+          matchesPlayed++;
+          const isT1=m.team1_id===tm.id;
+          gamesWon+=(isT1?m.team1_sets:m.team2_sets)||0;
+          gamesLost+=(isT1?m.team2_sets:m.team1_sets)||0;
+        }
+      }
+      return`<div class="profile-card" style="cursor:pointer;" onclick="closeModal('profileModal');openPlayerProfileModal('${p.id}',false)">
+        <div class="profile-avatar-lg">👤</div>
+        <div class="profile-name-lg">${esc(p.name)}</div>
+        <div class="profile-stat"><span>Tournaments Played</span><span class="profile-stat-val">${tourneyIds.length}</span></div>
+        <div class="profile-stat"><span>Tournaments Won</span><span class="profile-stat-val">🏆 ${p.titles||0}</span></div>
+        <div class="profile-stat"><span>Matches Played</span><span class="profile-stat-val">${matchesPlayed}</span></div>
+        <div class="profile-stat"><span>Matches Won</span><span class="profile-stat-val">${gamesWon}</span></div>
+        <div class="profile-stat"><span>Matches Lost</span><span class="profile-stat-val">${gamesLost}</span></div>
+        <div class="profile-stat"><span>Total Points</span><span class="profile-stat-val">${p.total_points||0} pts</span></div>
+      </div>`;
+    }
+    const [c1,c2]=await Promise.all([buildCard(team.player1_id),buildCard(team.player2_id)]);
+    document.getElementById("profileModalTitle").textContent=esc(team.name);
+    document.getElementById("profileModalBody").innerHTML=`<div class="profile-duo">${c1}${c2}</div><div style="font-size:11px;color:var(--white50);margin-top:10px;text-align:center;">Click a player card to see their full profile</div>`;
+    openModal("profileModal");
+  }catch(e){toast("Error loading team profile","err");}
+}
+
+// ── REGISTRATION MODAL (built-in) ─────────────────────────────────────
+let curRegTourneyId=null;
+let pendingRegAfterLogin=null;
+function handleRegisterClick(tid,tName,fee){
+  if(!currentUser){toggleDrawer();return;}
+  openRegModal(tid,tName,fee);
+}
+function openRegModal(tid,tName,fee){
+  if(!currentUser){
+    pendingRegAfterLogin={tid,tName,fee};
+    toggleDrawer();
+    return;
+  }
+  pendingRegAfterLogin=null;
+  curRegTourneyId=tid;
+  const feeStr=fee>0?`${fee*2} EGP (${fee} EGP per player)`:'Free';
+  document.getElementById("regModalErr").textContent="";
+  // Player 1 is always the logged-in user — shown as locked/readonly
+  document.getElementById("regModalBody").innerHTML=`
+    <div style="background:rgba(0,0,0,.2);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--white80);">
+      Registering for: <b>${esc(tName)}</b>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Player 1 (You)</label>
+      <div style="padding:9px 12px;background:rgba(230,216,50,.08);border:1px solid rgba(230,216,50,.25);border-radius:8px;font-weight:600;color:var(--yellow);">
+        👤 ${esc(currentUser.name||currentUser.email||'You')}
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Player 2 — Choose Partner</label>
+      <input type="text" id="rm-p2-search" placeholder="🔍 Search by name..." oninput="filterPartnerSearch(this.value)" autocomplete="off" style="margin-bottom:6px;">
+      <div id="rm-p2-results" style="background:rgba(0,0,0,.3);border:1px solid var(--border2);border-radius:8px;max-height:180px;overflow-y:auto;display:none;"></div>
+      <div id="rm-p2-selected" style="display:none;padding:9px 12px;background:rgba(76,175,80,.1);border:1px solid rgba(76,175,80,.3);border-radius:8px;font-weight:600;color:#81c784;margin-top:6px;align-items:center;justify-content:space-between;">
+        <span id="rm-p2-selected-name"></span>
+        <button onclick="clearPartnerSelection()" style="background:none;border:none;color:var(--white50);cursor:pointer;font-size:16px;">✕</button>
+      </div>
+      <input type="hidden" id="rm-p2">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="form-group"><label class="form-label">Player 1 Phone</label><input type="tel" id="rm-ph1" placeholder="+20..." value="${esc(currentUser.phone||'')}"></div>
+      <div class="form-group"><label class="form-label">Player 2 Phone</label><input type="tel" id="rm-ph2" placeholder="+20..."></div>
+    </div>
+    <div style="margin-bottom:14px;">
+      <div class="form-label" style="margin-bottom:8px;">Payment Method</div>
+      <div style="display:flex;gap:12px;">
+        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;"><input type="radio" name="rm-pay" value="Telda" checked> Telda</label>
+        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;"><input type="radio" name="rm-pay" value="Instapay"> Instapay</label>
+      </div>
+    </div>
+    <div class="pay-box">
+      <div class="pay-method"><span class="pay-label">Telda</span><span class="pay-value">zeyadh7</span></div>
+      <div class="pay-method"><span class="pay-label">Instapay</span><span class="pay-value">01010071055</span></div>
+    </div>
+    <div style="background:rgba(230,216,50,.08);border:1px solid rgba(230,216,50,.2);border-radius:8px;padding:12px;margin-bottom:4px;font-size:13px;">
+      💰 Total to pay: <b>${feeStr}</b><br>
+      After paying, send the screenshot on WhatsApp to: <b>+2 01010071055</b>
+    </div>
+    <div style="font-size:12px;color:var(--white50);margin-top:8px;">⚠️ Your partner must have an account on this site to appear in the list.</div>`;
+  openModal("regModal");
+  setTimeout(()=>filterPartnerSearch(''),50);
+}
+
+// ── PARTNER SEARCH ────────────────────────────────────────────────────
+function filterPartnerSearch(q){
+  const resultsEl=document.getElementById('rm-p2-results');
+  if(!resultsEl)return;
+  const me=currentUser?.name?.toLowerCase()||'';
+  const filtered=allPlayers.filter(p=>{
+    if(!p.name||p.name.toLowerCase()===me)return false;
+    return !q||p.name.toLowerCase().includes(q.toLowerCase());
+  });
+  if(!filtered.length){
+    resultsEl.style.display='block';
+    resultsEl.innerHTML=`<div style="padding:10px 14px;font-size:13px;color:var(--white50);">${q?'No players found':'No other players have signed up yet'}</div>`;
+    return;
+  }
+  resultsEl.style.display='block';
+  resultsEl.innerHTML=filtered.map(p=>`
+    <div onclick="selectPartner('${p.id}','${p.name.replace(/'/g,"\'")}','${(p.phone||'').replace(/'/g,"\'")}',this)"
+      style="padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);font-size:13px;transition:background .15s;"
+      onmouseover="this.style.background='rgba(255,255,255,.1)'" onmouseout="this.style.background='none'">
+      <div style="font-weight:600;">👤 ${esc(p.name)}</div>
+      ${p.email?`<div style="font-size:11px;color:var(--white50);">${esc(p.email)}</div>`:''}
+    </div>`).join('');
+}
+function selectPartner(id,name,phone,el){
+  document.getElementById('rm-p2').value=name;
+  const sel=document.getElementById('rm-p2-selected');
+  const selName=document.getElementById('rm-p2-selected-name');
+  if(sel&&selName){sel.style.display='flex';selName.textContent='✓ '+name;}
+  const search=document.getElementById('rm-p2-search');
+  if(search)search.style.display='none';
+  const results=document.getElementById('rm-p2-results');
+  if(results)results.style.display='none';
+  if(phone){const ph2=document.getElementById('rm-ph2');if(ph2&&!ph2.value)ph2.value=phone;}
+}
+function clearPartnerSelection(){
+  document.getElementById('rm-p2').value='';
+  const sel=document.getElementById('rm-p2-selected');
+  if(sel)sel.style.display='none';
+  const search=document.getElementById('rm-p2-search');
+  if(search){search.style.display='block';search.value='';search.focus();}
+  filterPartnerSearch('');
+}
+async function submitRegistration(){
+  // Player 1 is always the logged-in user
+  const p1Name=currentUser.name||currentUser.email||'';
+  const p2=document.getElementById("rm-p2").value.trim();
+  const ph1=document.getElementById("rm-ph1").value.trim();
+  const ph2=document.getElementById("rm-ph2").value.trim();
+  const payEl=document.querySelector("input[name='rm-pay']:checked");
+  const pay=payEl?payEl.value:'Telda';
+  const err=document.getElementById("regModalErr");
+  if(!p2){err.textContent="Please select your partner from the list.";return;}
+  if(!ph2){err.textContent="Enter your partner's phone number.";return;}
+  if(p1Name.toLowerCase()===p2.toLowerCase()){err.textContent="You can't register with yourself.";return;}
+  // Player 1 = current user, already verified. Check Player 2 has a profile.
+  let p2Match;
+  try{
+    const freshPlayers=await db.get("players","select=id,name");
+    p2Match=freshPlayers.find(p=>p.name.toLowerCase()===p2.toLowerCase());
+  }catch(e){err.textContent="Error checking profile: "+e.message;return;}
+  if(!p2Match){err.textContent=`"${p2}" doesn't have a profile on this site. Ask them to sign up first.`;return;}
+  try{
+    const regBody={
+      tournament_id:curRegTourneyId,
+      player1_name:p1Name,
+      player2_name:p2,
+      player1_phone:ph1||currentUser.phone||'N/A',
+      player2_phone:ph2||'N/A',
+      payment_method:pay,
+      status:'pending'
+    };
+    const res=await fetch(`${SB}/rest/v1/registrations`,{
+      method:"POST",
+      headers:{"apikey":KEY,"Authorization":`Bearer ${KEY}`,"Content-Type":"application/json","Prefer":"return=representation"},
+      body:JSON.stringify(regBody)
+    });
+    if(!res.ok){
+      let errMsg="Unknown error";
+      try{const j=await res.json();errMsg=j.message||j.details||j.hint||JSON.stringify(j);}
+      catch(e2){errMsg=await res.text().catch(()=>"Request failed");}
+      err.textContent="Error: "+errMsg;return;
+    }
+    closeModal("regModal");
+    toast("Registration submitted! Awaiting admin approval. ★");
+  }catch(e){err.textContent="Error: "+e.message;}
+}
+
+// ── MOVE TEAMS MODAL ─────────────────────────────────────────────────
+async function openMoveTeamModal(tid){
+  try{
+    const [groups,gts,teams]=await Promise.all([
+      db.get("groups",`tournament_id=eq.${tid}&order=name.asc`),
+      db.get("group_teams","select=*"),
+      db.get("teams",`tournament_id=eq.${tid}&registration_status=eq.approved`),
+    ]);
+    let html="";
+    for(const g of groups){
+      const gtms=gts.filter(x=>x.group_id===g.id);
+      html+=`<div style="margin-bottom:16px;"><div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;color:var(--yellow);margin-bottom:6px;">${esc(g.name)}</div>`;
+      for(const gt of gtms){
+        const tm=teams.find(t=>t.id===gt.team_id)||{name:"Unknown"};
+        const otherGroups=groups.filter(og=>og.id!==g.id);
+        const moveOpts=otherGroups.map(og=>`<option value="${og.id}">${esc(og.name)}</option>`).join("");
+        html+=`<div class="group-move-row">
+          <span style="font-size:13px;font-weight:500;">${esc(tm.name)}</span>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <select id="mv-${gt.id}" style="width:auto;padding:4px 8px;font-size:12px;">${moveOpts}</select>
+            <button class="btn btn-sm btn-accent" onclick="doMoveTeam('${gt.id}','${gt.team_id}','${g.id}','${tid}')">Move →</button>
+          </div>
+        </div>`;
+      }
+      html+=`</div>`;
+    }
+    document.getElementById("moveTeamBody").innerHTML=html||"<div style='color:var(--white50);'>No groups yet</div>";
+    openModal("moveTeamModal");
+  }catch(e){toast("Error: "+e.message,"err");}
+}
+async function doMoveTeam(gtId,teamId,fromGroupId,tid){
+  const sel=document.getElementById(`mv-${gtId}`);
+  if(!sel)return;
+  const toGroupId=sel.value;
+  if(!toGroupId||toGroupId===fromGroupId){toast("Select a different group","err");return;}
+  try{
+    const existing=await db.get("group_teams",`group_id=eq.${toGroupId}&team_id=eq.${teamId}`);
+    if(existing.length){toast("Team already in that group","err");return;}
+    await db.patch("group_teams",`id=eq.${gtId}`,{group_id:toGroupId,played:0,won:0,lost:0,games_for:0,games_against:0,points:0});
+    toast("Team moved!");closeModal("moveTeamModal");await loadAdminData();loadManage();
+  }catch(e){toast("Error: "+e.message,"err");}
+}
+
+// ── UTILS ─────────────────────────────────────────────────────────────
+function esc(s){const d=document.createElement("div");d.textContent=String(s||"");return d.innerHTML;}
+function formatDate(d){return d?new Date(d).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}):""}
+function formatDt(d){if(!d)return"";const dt=new Date(d);return dt.toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})+" "+dt.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"});}
+function stageName(s){return{group:"Group Match",quarter_final:"Quarter Final",semi_final:"Semi Final",final:"Final"}[s]||s;}
+
+// ── INIT ──────────────────────────────────────────────────────────────
+// ── SESSION PERSISTENCE ───────────────────────────────────────────────
+function persistSession(){
+  try{
+    localStorage.setItem("pa_session", JSON.stringify(currentSession));
+    localStorage.setItem("pa_user", JSON.stringify(currentUser));
+  }catch(e){}
+}
+function clearSession(){
+  try{localStorage.removeItem("pa_session");localStorage.removeItem("pa_user");}catch(e){}
+}
+async function restoreSession(){
+  try{
+    const savedSession=JSON.parse(localStorage.getItem("pa_session")||"null");
+    const savedUser=JSON.parse(localStorage.getItem("pa_user")||"null");
+    if(!savedSession?.access_token||!savedUser)return;
+    // Verify token is still valid by refreshing it
+    const res=await fetch(`${SB}/auth/v1/token?grant_type=refresh_token`,{
+      method:"POST",
+      headers:{"apikey":KEY,"Content-Type":"application/json"},
+      body:JSON.stringify({refresh_token:savedSession.refresh_token})
+    });
+    const data=await res.json();
+    if(data.error||!data.access_token){clearSession();return;}
+    currentSession=data;
+    // Refresh player data from DB
+    const email=savedUser.email||data.user?.email;
+    if(email){
+      const found=await db.get("players",`email=eq.${encodeURIComponent(email)}`);
+      currentUser=found.length?{...found[0],email}:{...savedUser,email};
+    } else {
+      currentUser=savedUser;
+    }
+    persistSession(); // update with fresh token
+  }catch(e){clearSession();}
+}
+
+async function init(){
+  await restoreSession();
+  await loadAll();
+  renderNavRight();
+  document.getElementById("loader").style.display="none";
+}
+init();
+</script>
+</body>
+</html>
