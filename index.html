@@ -187,6 +187,26 @@ td.tn{font-weight:500;}
 .reg-actions{display:flex;gap:7px;margin-top:10px;}
 
 /* EMPTY */
+
+/* PULSE GLOW for active tournaments */
+@keyframes pulse-glow{
+  0%,100%{box-shadow:0 0 0 0 rgba(230,216,50,0);}
+  50%{box-shadow:0 0 0 6px rgba(230,216,50,.18),0 0 24px rgba(230,216,50,.10);}
+}
+.t-card.active-tourney{
+  border-color:rgba(230,216,50,.35);
+  animation:pulse-glow 2.4s ease-in-out infinite;
+}
+.t-card.active-tourney .t-icon{
+  background:rgba(230,216,50,.18);
+}
+
+/* TOURNAMENT BADGES */
+.t-badges-wrap{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0 6px;}
+.tourney-badge{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:99px;font-size:12px;font-weight:700;letter-spacing:.3px;}
+.tb-gold{background:linear-gradient(135deg,#f5c518,#e6a817);color:#000;}
+.tb-shield{background:linear-gradient(135deg,#1e88e5,#1565c0);color:#fff;}
+.tb-fire{background:linear-gradient(135deg,#ff6b35,#d63031);color:#fff;}
 .empty{text-align:center;padding:50px 20px;color:var(--white50);}
 .empty-icon{font-size:36px;margin-bottom:10px;opacity:.4;}
 .empty-title{font-family:"Bebas Neue",sans-serif;font-size:20px;letter-spacing:1px;color:var(--white80);margin-bottom:5px;}
@@ -694,14 +714,16 @@ async function doDrawerLogin(){
   const err=document.getElementById("drawerAuthErr");
   if(!email||!pw){if(err)err.textContent="Fill in all fields.";return;}
   try{
-    const res=await sbLogin(email,pw);
-    if(res.error){if(err)err.textContent=res.error.message||"Login failed.";return;}
-    currentSession=res;
+    // First check a player profile exists with this email
     const found=await db.get("players",`email=eq.${encodeURIComponent(email)}`);
-    currentUser=found.length?{...found[0],email}:{email,name:res.user?.user_metadata?.full_name||email,total_points:0,titles:0};
+    if(!found.length){if(err)err.textContent="No account found with this email. Please sign up first.";return;}
+    // Then attempt Supabase auth login
+    const res=await sbLogin(email,pw);
+    if(res.error||!res.access_token){if(err)err.textContent=res.error?.message||"Incorrect password.";return;}
+    currentSession=res;
+    currentUser={...found[0],email};
     persistSession();
-    renderNavRight();toast("Welcome back!");
-    // If player was trying to register, open the modal now
+    renderNavRight();toast(`Welcome back, ${found[0].name||email}!`);
     if(pendingRegAfterLogin){
       closeDrawer();
       const {tid,tName,fee}=pendingRegAfterLogin;
@@ -783,10 +805,10 @@ async function doLogin(){
     const existing=await db.get("players",`email=eq.${encodeURIComponent(email)}`);
     if(!existing.length){err.textContent="No account found with this email. Please sign up first.";return;}
     const res=await sbLogin(email,pw);
-    if(res.error){err.textContent=res.error.message||"Login failed.";return;}
+    if(res.error||!res.access_token){err.textContent=res.error?.message||"Incorrect password.";return;}
     currentSession=res;
     currentUser={...existing[0],email};
-    closeModal("authModal");renderNavRight();renderAccount();showTab("tab-account");toast(`Welcome back!`);
+    closeModal("authModal");renderNavRight();renderAccount();showTab("tab-account");toast(`Welcome back, ${existing[0].name||email}!`);
   }catch(e){err.textContent=e.message;}
 }
 async function doSignup(){
@@ -829,9 +851,18 @@ async function renderAccount(){
     const p=player[0]||{total_points:0,titles:0,name:currentUser.name};
     el.innerHTML=`<div class="card" style="margin-bottom:16px;">
       <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
-        <div style="width:52px;height:52px;border-radius:14px;background:rgba(230,216,50,.15);display:flex;align-items:center;justify-content:center;font-size:24px;">👤</div>
-        <div><div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;">${esc(p.name)}</div>
-        <div style="font-size:12px;color:var(--white50);">${esc(currentUser.email||"")}</div></div>
+        <div style="position:relative;cursor:pointer;" onclick="openAvatarEdit()" title="Change photo">
+          ${p.avatar_url
+            ?`<img src="${esc(p.avatar_url)}" style="width:56px;height:56px;border-radius:14px;object-fit:cover;border:2px solid rgba(230,216,50,.3);" onerror="this.style.display='none';this.nextSibling.style.display='flex'">
+               <div style="display:none;width:56px;height:56px;border-radius:14px;background:rgba(230,216,50,.15);align-items:center;justify-content:center;font-size:24px;">👤</div>`
+            :`<div style="width:56px;height:56px;border-radius:14px;background:rgba(230,216,50,.15);display:flex;align-items:center;justify-content:center;font-size:24px;">👤</div>`}
+          <div style="position:absolute;bottom:-4px;right:-4px;width:20px;height:20px;border-radius:50%;background:var(--yellow);display:flex;align-items:center;justify-content:center;font-size:11px;">✏</div>
+        </div>
+        <div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;">${esc(p.name)}</div>
+          <div style="font-size:12px;color:var(--white50);">${esc(currentUser.email||"")}</div>
+          <div style="font-size:11px;color:var(--white50);margin-top:2px;cursor:pointer;" onclick="openAvatarEdit()">📷 Change photo</div>
+        </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;text-align:center;">
         <div style="background:rgba(0,0,0,.2);border-radius:10px;padding:12px;">
@@ -880,7 +911,8 @@ function renderTourneyList(){
     const teams=allTeams.filter(tm=>tm.tournament_id===t.id);
     const full=t.max_teams&&teams.length>=t.max_teams;
     const isPrivate=getTourneyVisibilityObj(t)==='private';
-    return `<div class="t-card" onclick="openTourney('${t.id}')">
+    const isActive=t.status==='group_stage'||t.status==='knockout';
+    return `<div class="t-card${isActive?' active-tourney':''}" onclick="openTourney('${t.id}')">
       <div class="t-icon">${isPrivate?'🔒':'🏆'}</div>
       <div style="flex:1;">
         <div class="t-name">${esc(t.name)}</div>
@@ -977,14 +1009,16 @@ async function openTourney(id){
       html+=renderBracket(ko,teams);
     }
 
-    // winner
+    // winner + badges
     if(t.status==="completed"&&t.winner_team_id){
       const wt=teams.find(tm=>tm.id===t.winner_team_id);
       if(wt)html+=`<div style="text-align:center;padding:28px;background:rgba(230,216,50,.08);border:1px solid rgba(230,216,50,.2);border-radius:16px;margin-top:24px;">
         <div style="font-size:36px;">🏆</div>
         <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;color:var(--yellow);margin-top:6px;">Champions</div>
-        <div style="font-size:20px;font-weight:600;margin-top:4px;">${esc(wt.name)}</div>
+        <div style="font-size:20px;font-weight:600;margin-top:4px;cursor:pointer;" onclick="openTeamProfileModal('${wt.id}')">${esc(wt.name)}</div>
       </div>`;
+      // compute badges
+      html+=await computeTourneyBadges(id,teams,matches);
     }
 
     if(!groups.length&&!ko.length&&t.status==="registration"){
@@ -1089,6 +1123,11 @@ function filterRankings(query){
     const globalIdx=rankedPlayers.indexOf(p);
     return `<div class="rank-row" style="justify-content:space-between;cursor:pointer;" onclick="openPlayerProfileModal('${p.id}',false)">
       <div class="rank-pos ${globalIdx===0?"p1":globalIdx===1?"p2":globalIdx===2?"p3":""}">${globalIdx+1}</div>
+      <div style="width:32px;height:32px;border-radius:8px;overflow:hidden;flex-shrink:0;">
+        ${p.avatar_url
+          ?`<img src="${esc(p.avatar_url)}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.innerHTML='<div style=\'width:32px;height:32px;border-radius:8px;background:rgba(230,216,50,.15);display:flex;align-items:center;justify-content:center;font-size:14px;\'>👤</div>'">`
+          :`<div style="width:32px;height:32px;border-radius:8px;background:rgba(230,216,50,.15);display:flex;align-items:center;justify-content:center;font-size:14px;">👤</div>`}
+      </div>
       <div style="flex:1;min-width:0;">
         <div class="rank-name">${esc(p.name)}</div>
         ${p.titles>0?`<div style="font-size:11px;color:var(--yellow);">🏆 ${p.titles} title${p.titles>1?"s":""}</div>`:""}
@@ -1855,7 +1894,11 @@ async function openPlayerProfileModal(playerId, showPhone){
     }
     document.getElementById("profileModalTitle").textContent=p.name;
     document.getElementById("profileModalBody").innerHTML=`<div class="profile-card">
-      <div class="profile-avatar-lg">👤</div>
+      <div class="profile-avatar-lg">
+        ${p.avatar_url
+          ?`<img src="${esc(p.avatar_url)}" style="width:56px;height:56px;border-radius:14px;object-fit:cover;" onerror="this.outerHTML='👤'">`
+          :`👤`}
+      </div>
       <div class="profile-name-lg">${esc(p.name)}</div>
       ${(showPhone||isAdmin)&&p.phone?`<div style="font-size:12px;color:var(--white50);margin-bottom:10px;">📞 ${esc(p.phone)}</div>`:""}
       <div class="profile-stat"><span>Tournaments Played</span><span class="profile-stat-val">${tourneyIds.length}</span></div>
@@ -1899,7 +1942,11 @@ async function openTeamProfileModal(teamId){
         }
       }
       return`<div class="profile-card" style="cursor:pointer;" onclick="closeModal('profileModal');openPlayerProfileModal('${p.id}',false)">
-        <div class="profile-avatar-lg">👤</div>
+        <div class="profile-avatar-lg">
+          ${p.avatar_url
+            ?`<img src="${esc(p.avatar_url)}" style="width:56px;height:56px;border-radius:14px;object-fit:cover;" onerror="this.outerHTML='👤'">`
+            :`👤`}
+        </div>
         <div class="profile-name-lg">${esc(p.name)}</div>
         <div class="profile-stat"><span>Tournaments Played</span><span class="profile-stat-val">${tourneyIds.length}</span></div>
         <div class="profile-stat"><span>Tournaments Won</span><span class="profile-stat-val">🏆 ${p.titles||0}</span></div>
@@ -2062,6 +2109,7 @@ async function submitRegistration(){
     }
     closeModal("regModal");
     toast("Registration submitted! Awaiting admin approval. ★");
+    notifyAdmin(`🎾 New Registration\n${p1Name} / ${p2} for a tournament\nPayment: ${pay}\nP1 Phone: ${ph1||currentUser.phone||'-'} | P2 Phone: ${ph2}`);
   }catch(e){err.textContent="Error: "+e.message;}
 }
 
@@ -2106,6 +2154,84 @@ async function doMoveTeam(gtId,teamId,fromGroupId,tid){
     await db.patch("group_teams",`id=eq.${gtId}`,{group_id:toGroupId,played:0,won:0,lost:0,games_for:0,games_against:0,points:0});
     toast("Team moved!");closeModal("moveTeamModal");await loadAdminData();loadManage();
   }catch(e){toast("Error: "+e.message,"err");}
+}
+
+
+// ── TOURNAMENT BADGES ─────────────────────────────────────────────────
+async function computeTourneyBadges(tid,teams,matches){
+  try{
+    // Top scorer: team with most total games won across all matches
+    const teamScores={};
+    for(const m of matches){
+      if(m.status!=='completed')continue;
+      if(m.team1_id){teamScores[m.team1_id]=(teamScores[m.team1_id]||0)+(m.team1_sets||0);}
+      if(m.team2_id){teamScores[m.team2_id]=(teamScores[m.team2_id]||0)+(m.team2_sets||0);}
+    }
+    const topTeamId=Object.keys(teamScores).sort((a,b)=>teamScores[b]-teamScores[a])[0];
+    const topTeam=teams.find(t=>t.id===topTeamId);
+    const topGames=teamScores[topTeamId]||0;
+
+    // Undefeated: team that never lost a match (won all their matches)
+    const teamLosses={};
+    for(const m of matches){
+      if(m.status!=='completed'||!m.winner_id)continue;
+      const loserId=m.winner_id===m.team1_id?m.team2_id:m.team1_id;
+      if(loserId)teamLosses[loserId]=(teamLosses[loserId]||0)+1;
+    }
+    // find teams with 0 losses that played at least 2 matches
+    const teamPlayed={};
+    for(const m of matches){
+      if(m.status!=='completed')continue;
+      if(m.team1_id)teamPlayed[m.team1_id]=(teamPlayed[m.team1_id]||0)+1;
+      if(m.team2_id)teamPlayed[m.team2_id]=(teamPlayed[m.team2_id]||0)+1;
+    }
+    const undefeatedTeams=teams.filter(t=>!teamLosses[t.id]&&(teamPlayed[t.id]||0)>=2);
+
+    let html=`<div class="t-badges-wrap" style="margin-top:18px;">`;
+    if(topTeam&&topGames>0){
+      html+=`<div class="tourney-badge tb-gold" style="cursor:pointer;" onclick="openTeamProfileModal('${topTeam.id}')">
+        🏅 Top Scorers: ${esc(topTeam.name)} (${topGames} games)
+      </div>`;
+    }
+    for(const ut of undefeatedTeams){
+      html+=`<div class="tourney-badge tb-shield" style="cursor:pointer;" onclick="openTeamProfileModal('${ut.id}')">
+        🛡 Undefeated: ${esc(ut.name)}
+      </div>`;
+    }
+    html+=`</div>`;
+    return html;
+  }catch(e){return '';}
+}
+
+// ── AVATAR EDIT ───────────────────────────────────────────────────────
+function openAvatarEdit(){
+  if(!currentUser){return;}
+  const existing=currentUser.avatar_url||'';
+  const url=prompt('Paste a direct image URL for your profile picture:\n(e.g. https://i.imgur.com/yourimage.jpg)\n\nLeave blank to remove your current photo:',existing);
+  if(url===null)return; // cancelled
+  saveAvatar(url.trim());
+}
+async function saveAvatar(url){
+  if(!currentUser?.id){toast('Log in to set a profile picture','err');return;}
+  try{
+    await db.patch('players',`id=eq.${currentUser.id}`,{avatar_url:url||null});
+    currentUser.avatar_url=url||null;
+    // update allPlayers cache
+    const idx=allPlayers.findIndex(p=>p.id===currentUser.id);
+    if(idx>=0)allPlayers[idx].avatar_url=url||null;
+    renderAccount();toast(url?'Profile photo updated!':'Profile photo removed');
+  }catch(e){toast('Error saving photo: '+e.message,'err');}
+}
+
+// ── CALLMEBOT WHATSAPP NOTIFICATION ──────────────────────────────────
+const CALLMEBOT_PHONE='201010071055'; // your WhatsApp number (intl format, no +)
+const CALLMEBOT_APIKEY=''; // fill in after setup at callmebot.com
+async function notifyAdmin(msg){
+  if(!CALLMEBOT_APIKEY)return; // skip if not configured
+  try{
+    const encoded=encodeURIComponent(msg);
+    await fetch(`https://api.callmebot.com/whatsapp.php?phone=${CALLMEBOT_PHONE}&text=${encoded}&apikey=${CALLMEBOT_APIKEY}`,{mode:'no-cors'});
+  }catch(e){/* silent fail */}
 }
 
 // ── UTILS ─────────────────────────────────────────────────────────────
