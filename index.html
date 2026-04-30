@@ -714,17 +714,29 @@ async function doDrawerLogin(){
   const err=document.getElementById("drawerAuthErr");
   if(!email||!pw){if(err)err.textContent="Fill in all fields.";return;}
   try{
-    // First check a player profile exists with this email
-    let found=await db.get("players",`email=eq.${encodeURIComponent(email)}`);
-    // fallback: some old records may not have email stored
-    if(!found.length){
-      // we still block login — email must exist in players table or be backfilled
-      if(err)err.textContent="No account found with this email. Please sign up first.";return;
-    }
-    // Then attempt Supabase auth login
+    // Attempt Supabase auth first — this validates credentials
     const res=await sbLogin(email,pw);
-    if(res.error||!res.access_token){if(err)err.textContent=res.error?.message||"Incorrect password.";return;}
+    if(res.error||!res.access_token){if(err)err.textContent=res.error?.message||"Incorrect email or password.";return;}
     currentSession=res;
+    // Now find their player record — try by email first
+    let found=await db.get("players",`email=eq.${encodeURIComponent(email)}`);
+    // Fallback: match by the name stored in Supabase auth metadata (for old records without email)
+    if(!found.length){
+      const authName=res.user?.user_metadata?.full_name||"";
+      if(authName)found=await db.get("players",`name=ilike.${encodeURIComponent(authName)}`);
+    }
+    // If still not found — they signed up via Supabase auth but have no player record
+    // This means they never properly registered on the site
+    if(!found.length){
+      if(err)err.textContent="No player profile found. Please sign up on this site to create your profile.";
+      await sbLogout(res.access_token).catch(()=>{});
+      currentSession=null;
+      return;
+    }
+    // Backfill email into player record if it was missing (fixes old records)
+    if(found[0].id && !found[0].email){
+      db.patch("players",`id=eq.${found[0].id}`,{email}).catch(()=>{});
+    }
     currentUser={...found[0],email};
     persistSession();
     renderNavRight();toast(`Welcome back, ${found[0].name||email}!`);
