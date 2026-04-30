@@ -1871,17 +1871,24 @@ async function setTourneyVisibility(tid,vis){
 
 // ── PLAYER PROFILE MODAL ──────────────────────────────────────────────
 async function openPlayerProfileModal(playerId, showPhone){
+  let modal=document.getElementById("profileModal");
+  if(!modal){
+    modal=document.createElement("div");
+    modal.id="profileModal";
+    modal.className="overlay";
+    modal.innerHTML='<div class="modal modal-wide"><div class="modal-title" id="profileModalTitle">Player Profile</div><div id="profileModalBody"></div><div class="modal-actions"><button class="btn" onclick="closeModal(\'profileModal\')">Close</button></div></div>';
+    document.body.appendChild(modal);
+  }
   try{
     const players=await db.get("players",`id=eq.${playerId}`);
-    if(!players.length)return;
+    if(!players.length){toast("Player not found","err");return;}
     const p=players[0];
     const teams1=await db.get("teams",`player1_id=eq.${p.id}&registration_status=eq.approved`);
     const teams2=await db.get("teams",`player2_id=eq.${p.id}&registration_status=eq.approved`);
     const myTeams=[...teams1,...teams2];
-    // Only count tournaments that have actually started (not just registration/pending)
     const startedTourneyIds=new Set(allTourneys.filter(t=>t.status!=='registration').map(t=>t.id));
     const tourneyIds=[...new Set(myTeams.map(t=>t.tournament_id).filter(id=>startedTourneyIds.has(id)))];
-    let matchesPlayed=0,gamesWon=0,gamesLost=0;
+    let matchesPlayed=0,matchesWon=0,matchesLost=0,gamesWon=0,gamesLost=0;
     for(const tm of myTeams){
       const ms1=await db.get("matches",`team1_id=eq.${tm.id}&status=eq.completed`);
       const ms2=await db.get("matches",`team2_id=eq.${tm.id}&status=eq.completed`);
@@ -1890,31 +1897,33 @@ async function openPlayerProfileModal(playerId, showPhone){
         const isT1=m.team1_id===tm.id;
         gamesWon+=(isT1?m.team1_sets:m.team2_sets)||0;
         gamesLost+=(isT1?m.team2_sets:m.team1_sets)||0;
+        if(m.winner_id===tm.id) matchesWon++; else matchesLost++;
       }
     }
+    const avatarHtml=p.avatar_url
+      ?`<img src="${esc(p.avatar_url)}" style="width:56px;height:56px;border-radius:14px;object-fit:cover;border:2px solid rgba(230,216,50,.3);" onerror="this.outerHTML='<div style=\'font-size:26px;\'>\u{1F464}</div>'">`
+      :`<div style="font-size:26px;">&#128100;</div>`;
     document.getElementById("profileModalTitle").textContent=p.name;
     document.getElementById("profileModalBody").innerHTML=`<div class="profile-card">
-      <div class="profile-avatar-lg">
-        ${p.avatar_url
-          ?`<img src="${esc(p.avatar_url)}" style="width:56px;height:56px;border-radius:14px;object-fit:cover;" onerror="this.outerHTML='👤'">`
-          :`👤`}
-      </div>
+      <div class="profile-avatar-lg">${avatarHtml}</div>
       <div class="profile-name-lg">${esc(p.name)}</div>
-      ${(showPhone||isAdmin)&&p.phone?`<div style="font-size:12px;color:var(--white50);margin-bottom:10px;">📞 ${esc(p.phone)}</div>`:""}
+      ${(showPhone||isAdmin)&&p.phone?`<div style="font-size:12px;color:var(--white50);margin-bottom:10px;">&#128222; ${esc(p.phone)}</div>`:""}
       <div class="profile-stat"><span>Tournaments Played</span><span class="profile-stat-val">${tourneyIds.length}</span></div>
-      <div class="profile-stat"><span>Tournaments Won</span><span class="profile-stat-val">🏆 ${p.titles||0}</span></div>
+      <div class="profile-stat"><span>Tournaments Won</span><span class="profile-stat-val">&#127942; ${p.titles||0}</span></div>
       <div class="profile-stat"><span>Matches Played</span><span class="profile-stat-val">${matchesPlayed}</span></div>
-      <div class="profile-stat"><span>Matches Won</span><span class="profile-stat-val">${gamesWon}</span></div>
-      <div class="profile-stat"><span>Matches Lost</span><span class="profile-stat-val">${gamesLost}</span></div>
+      <div class="profile-stat"><span>Matches Won</span><span class="profile-stat-val">${matchesWon}</span></div>
+      <div class="profile-stat"><span>Matches Lost</span><span class="profile-stat-val">${matchesLost}</span></div>
+      <div class="profile-stat"><span>Games Won</span><span class="profile-stat-val">${gamesWon}</span></div>
+      <div class="profile-stat"><span>Games Lost</span><span class="profile-stat-val">${gamesLost}</span></div>
       <div class="profile-stat"><span>Total Points</span><span class="profile-stat-val">${p.total_points||0} pts</span></div>
     </div>
     ${isAdmin?`<div style="display:flex;gap:8px;margin-top:14px;">
-      <button class="btn btn-accent btn-sm" style="flex:1;" onclick="openEditPlayerModal('${p.id}')">✏ Edit Profile</button>
-      <button class="btn btn-danger btn-sm" style="flex:1;" onclick="closeModal('profileModal');deletePlayer('${p.id}','${esc(p.name)}')">🗑 Delete</button>
+      <button class="btn btn-danger btn-sm" style="flex:1;" onclick="closeModal('profileModal');deletePlayer('${p.id}','${esc(p.name)}')">Delete Player</button>
     </div>`:''}`;
     openModal("profileModal");
-  }catch(e){toast("Error loading profile","err");}
+  }catch(e){toast("Error loading profile: "+e.message,"err");}
 }
+
 
 async function openTeamProfileModal(teamId){
   try{
@@ -1930,7 +1939,7 @@ async function openTeamProfileModal(teamId){
       const t2=await db.get("teams",`player2_id=eq.${pid}&registration_status=eq.approved`);
       const myTeams=[...t1,...t2];
       const tourneyIds=[...new Set(myTeams.map(t=>t.tournament_id))];
-      let matchesPlayed=0,gamesWon=0,gamesLost=0;
+      let matchesPlayed=0,matchesWon=0,matchesLost=0,gamesWon=0,gamesLost=0;
       for(const tm of myTeams){
         const ms1=await db.get("matches",`team1_id=eq.${tm.id}&status=eq.completed`);
         const ms2=await db.get("matches",`team2_id=eq.${tm.id}&status=eq.completed`);
@@ -1939,20 +1948,20 @@ async function openTeamProfileModal(teamId){
           const isT1=m.team1_id===tm.id;
           gamesWon+=(isT1?m.team1_sets:m.team2_sets)||0;
           gamesLost+=(isT1?m.team2_sets:m.team1_sets)||0;
+          if(m.winner_id===tm.id) matchesWon++; else matchesLost++;
         }
       }
+      const av=p.avatar_url?`<img src="${esc(p.avatar_url)}" style="width:56px;height:56px;border-radius:14px;object-fit:cover;" onerror="this.outerHTML='<div style=\'font-size:26px;\'>👤</div>'">`:`<div style="font-size:26px;">👤</div>`;
       return`<div class="profile-card" style="cursor:pointer;" onclick="closeModal('profileModal');openPlayerProfileModal('${p.id}',false)">
-        <div class="profile-avatar-lg">
-          ${p.avatar_url
-            ?`<img src="${esc(p.avatar_url)}" style="width:56px;height:56px;border-radius:14px;object-fit:cover;" onerror="this.outerHTML='👤'">`
-            :`👤`}
-        </div>
+        <div class="profile-avatar-lg">${av}</div>
         <div class="profile-name-lg">${esc(p.name)}</div>
         <div class="profile-stat"><span>Tournaments Played</span><span class="profile-stat-val">${tourneyIds.length}</span></div>
         <div class="profile-stat"><span>Tournaments Won</span><span class="profile-stat-val">🏆 ${p.titles||0}</span></div>
         <div class="profile-stat"><span>Matches Played</span><span class="profile-stat-val">${matchesPlayed}</span></div>
-        <div class="profile-stat"><span>Matches Won</span><span class="profile-stat-val">${gamesWon}</span></div>
-        <div class="profile-stat"><span>Matches Lost</span><span class="profile-stat-val">${gamesLost}</span></div>
+        <div class="profile-stat"><span>Matches Won</span><span class="profile-stat-val">${matchesWon}</span></div>
+        <div class="profile-stat"><span>Matches Lost</span><span class="profile-stat-val">${matchesLost}</span></div>
+        <div class="profile-stat"><span>Games Won</span><span class="profile-stat-val">${gamesWon}</span></div>
+        <div class="profile-stat"><span>Games Lost</span><span class="profile-stat-val">${gamesLost}</span></div>
         <div class="profile-stat"><span>Total Points</span><span class="profile-stat-val">${p.total_points||0} pts</span></div>
       </div>`;
     }
@@ -2205,11 +2214,29 @@ async function computeTourneyBadges(tid,teams,matches){
 
 // ── AVATAR EDIT ───────────────────────────────────────────────────────
 function openAvatarEdit(){
-  if(!currentUser){return;}
-  const existing=currentUser.avatar_url||'';
-  const url=prompt('Paste a direct image URL for your profile picture:\n(e.g. https://i.imgur.com/yourimage.jpg)\n\nLeave blank to remove your current photo:',existing);
-  if(url===null)return; // cancelled
-  saveAvatar(url.trim());
+  if(!currentUser){toast('Log in to change your photo','err');return;}
+  const input=document.createElement('input');
+  input.type='file';
+  input.accept='image/*';
+  input.onchange=async(e)=>{
+    const file=e.target.files[0];
+    if(!file)return;
+    if(file.size>5*1024*1024){toast('Image must be under 5MB','err');return;}
+    toast('Uploading photo...','info');
+    try{
+      const fd=new FormData();
+      fd.append('file',file);
+      fd.append('upload_preset','PadelAddicts');
+      const res=await fetch('https://api.cloudinary.com/v1_1/drmrpp3lp/image/upload',{method:'POST',body:fd});
+      const data=await res.json();
+      if(data.secure_url){
+        await saveAvatar(data.secure_url);
+      } else {
+        toast('Upload failed: '+(data.error?.message||'Unknown error'),'err');
+      }
+    }catch(e){toast('Upload error: '+e.message,'err');}
+  };
+  input.click();
 }
 async function saveAvatar(url){
   if(!currentUser?.id){toast('Log in to set a profile picture','err');return;}
