@@ -715,8 +715,12 @@ async function doDrawerLogin(){
   if(!email||!pw){if(err)err.textContent="Fill in all fields.";return;}
   try{
     // First check a player profile exists with this email
-    const found=await db.get("players",`email=eq.${encodeURIComponent(email)}`);
-    if(!found.length){if(err)err.textContent="No account found with this email. Please sign up first.";return;}
+    let found=await db.get("players",`email=eq.${encodeURIComponent(email)}`);
+    // fallback: some old records may not have email stored
+    if(!found.length){
+      // we still block login — email must exist in players table or be backfilled
+      if(err)err.textContent="No account found with this email. Please sign up first.";return;
+    }
     // Then attempt Supabase auth login
     const res=await sbLogin(email,pw);
     if(res.error||!res.access_token){if(err)err.textContent=res.error?.message||"Incorrect password.";return;}
@@ -842,8 +846,18 @@ async function renderAccount(){
   try{
     // look up player by email if we don't have an id yet
     if(!currentUser.id && currentUser.email){
-      const found=await db.get("players",`email=eq.${encodeURIComponent(currentUser.email)}`);
-      if(found.length)Object.assign(currentUser,found[0]);
+      let found=await db.get("players",`email=eq.${encodeURIComponent(currentUser.email)}`);
+      // fallback: match by name if email not stored in players table
+      if(!found.length && currentUser.name){
+        found=await db.get("players",`name=ilike.${encodeURIComponent(currentUser.name)}`);
+      }
+      if(found.length){
+        Object.assign(currentUser,found[0]);
+        // backfill email into player record if missing
+        if(!found[0].email && currentUser.email){
+          db.patch("players",`id=eq.${found[0].id}`,{email:currentUser.email}).catch(()=>{});
+        }
+      }
     }
     const hist=currentUser.id?await db.get("ranking_history",`player_id=eq.${currentUser.id}&order=created_at.desc`):[];
     const pts=hist.reduce((s,r)=>s+r.points_awarded,0);
