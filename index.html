@@ -912,7 +912,10 @@ async function renderAccount(){
           <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;">${esc(p.name)}</div>
           <div style="font-size:12px;color:var(--white50);">${esc(currentUser.email||"")}</div>
           ${p.phone?`<div style="font-size:12px;color:var(--white50);">📞 ${esc(p.phone)}</div>`:""}
-          <div style="font-size:11px;color:rgba(230,216,50,.7);margin-top:3px;cursor:pointer;" onclick="openAvatarEdit()">📷 Change photo</div>
+          <div style="display:flex;gap:10px;margin-top:3px;">
+            <div style="font-size:11px;color:rgba(230,216,50,.7);cursor:pointer;" onclick="openAvatarEdit()">📷 Change photo</div>
+            ${p.avatar_url?`<div style="font-size:11px;color:rgba(255,85,85,.8);cursor:pointer;" onclick="removeAvatar()">🗑 Remove photo</div>`:""}
+          </div>
         </div>
       </div>
 
@@ -2317,6 +2320,10 @@ function openAvatarEdit(){
     }catch(e){toast('Upload error: '+e.message,'err');}
   };
   input.click();
+}
+async function removeAvatar(){
+  if(!confirm("Remove your profile picture?"))return;
+  await saveAvatar(null);
 }
 async function saveAvatar(url){
   if(!currentUser?.id){toast('Log in to set a profile picture','err');return;}
