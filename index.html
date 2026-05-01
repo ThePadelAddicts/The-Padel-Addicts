@@ -483,7 +483,8 @@ td.tn{font-weight:500;}
         <div class="form-group"><label class="form-label">Entry Fee (EGP)</label><input type="number" id="nt-fee" placeholder="0"></div>
         <div class="form-group"><label class="form-label">Max Teams</label><input type="number" id="nt-max" placeholder="16" value="16"></div>
       </div>
-      <div class="form-group"><label class="form-label">Prize</label><input type="text" id="nt-prize" placeholder="e.g. Trophy + 5,000 EGP"></div>
+      <div class="form-group"><label class="form-label">🥇 1st Place Prize</label><input type="text" id="nt-prize" placeholder="e.g. Trophy + 5,000 EGP"></div>
+      <div class="form-group"><label class="form-label">🥈 2nd Place Prize</label><input type="text" id="nt-prize2" placeholder="e.g. Medal + 2,000 EGP"></div>
       <div class="form-group"><label class="form-label">Registration Form URL (Google Form)</label><input type="text" id="nt-form" placeholder="https://forms.gle/..."></div>
       <button class="btn btn-accent" onclick="createTournament()">Create Tournament</button>
     </div>
@@ -679,7 +680,7 @@ async function renderDrawer(){
         <div class="drawer-stat"><div class="drawer-stat-n">${p.total_points||0}</div><div class="drawer-stat-l">Points</div></div>
         <div class="drawer-stat"><div class="drawer-stat-n">${p.titles||0}</div><div class="drawer-stat-l">Titles</div></div>
       </div>
-      <button class="btn" style="width:100%;margin-bottom:8px;" onclick="closeDrawer();showTab('tab-account')">View Full Profile</button>
+      <button class="btn" style="width:100%;margin-bottom:8px;" onclick="closeDrawer();renderAccount();showTab('tab-account')">View Full Profile</button>
       <button class="btn btn-danger" style="width:100%;" onclick="playerLogout()">Log Out</button>`;
   }catch(e){el.innerHTML="<div style='color:var(--red);font-size:13px;'>Error loading profile</div>";}
 }
@@ -872,39 +873,84 @@ async function renderAccount(){
       }
     }
     const hist=currentUser.id?await db.get("ranking_history",`player_id=eq.${currentUser.id}&order=created_at.desc`):[];
-    const pts=hist.reduce((s,r)=>s+r.points_awarded,0);
     const player=currentUser.id?await db.get("players",`id=eq.${currentUser.id}`):[];
     const p=player[0]||{total_points:0,titles:0,name:currentUser.name};
+
+    // compute match stats
+    let matchesPlayed=0,matchesWon=0,matchesLost=0,gamesWon=0,gamesLost=0,tourneysPlayed=0;
+    if(currentUser.id){
+      const myTeams1=await db.get("teams",`player1_id=eq.${currentUser.id}&registration_status=eq.approved`);
+      const myTeams2=await db.get("teams",`player2_id=eq.${currentUser.id}&registration_status=eq.approved`);
+      const myTeams=[...myTeams1,...myTeams2];
+      const startedIds=new Set(allTourneys.filter(t=>t.status!=='registration').map(t=>t.id));
+      tourneysPlayed=[...new Set(myTeams.map(t=>t.tournament_id).filter(id=>startedIds.has(id)))].length;
+      for(const tm of myTeams){
+        const ms1=await db.get("matches",`team1_id=eq.${tm.id}&status=eq.completed`);
+        const ms2=await db.get("matches",`team2_id=eq.${tm.id}&status=eq.completed`);
+        for(const m of [...ms1,...ms2]){
+          matchesPlayed++;
+          const isT1=m.team1_id===tm.id;
+          gamesWon+=(isT1?m.team1_sets:m.team2_sets)||0;
+          gamesLost+=(isT1?m.team2_sets:m.team1_sets)||0;
+          if(m.winner_id===tm.id) matchesWon++; else matchesLost++;
+        }
+      }
+    }
+
     el.innerHTML=`<div class="card" style="margin-bottom:16px;">
-      <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;">
         <div style="position:relative;cursor:pointer;" onclick="openAvatarEdit()" title="Change photo">
           ${p.avatar_url
-            ?`<img src="${esc(p.avatar_url)}" style="width:56px;height:56px;border-radius:14px;object-fit:cover;border:2px solid rgba(230,216,50,.3);" onerror="this.style.display='none';this.nextSibling.style.display='flex'">
-               <div style="display:none;width:56px;height:56px;border-radius:14px;background:rgba(230,216,50,.15);align-items:center;justify-content:center;font-size:24px;">👤</div>`
-            :`<div style="width:56px;height:56px;border-radius:14px;background:rgba(230,216,50,.15);display:flex;align-items:center;justify-content:center;font-size:24px;">👤</div>`}
+            ?`<img src="${esc(p.avatar_url)}" style="width:62px;height:62px;border-radius:14px;object-fit:cover;border:2px solid rgba(230,216,50,.4);" onerror="this.outerHTML='<div style=\'width:62px;height:62px;border-radius:14px;background:rgba(230,216,50,.15);display:flex;align-items:center;justify-content:center;font-size:26px;\'>👤</div>'">`
+            :`<div style="width:62px;height:62px;border-radius:14px;background:rgba(230,216,50,.15);display:flex;align-items:center;justify-content:center;font-size:26px;">👤</div>`}
           <div style="position:absolute;bottom:-4px;right:-4px;width:20px;height:20px;border-radius:50%;background:var(--yellow);display:flex;align-items:center;justify-content:center;font-size:11px;">✏</div>
         </div>
         <div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;">${esc(p.name)}</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;">${esc(p.name)}</div>
           <div style="font-size:12px;color:var(--white50);">${esc(currentUser.email||"")}</div>
-          <div style="font-size:11px;color:var(--white50);margin-top:2px;cursor:pointer;" onclick="openAvatarEdit()">📷 Change photo</div>
+          ${p.phone?`<div style="font-size:12px;color:var(--white50);">📞 ${esc(p.phone)}</div>`:""}
+          <div style="font-size:11px;color:rgba(230,216,50,.7);margin-top:3px;cursor:pointer;" onclick="openAvatarEdit()">📷 Change photo</div>
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;text-align:center;">
+
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;text-align:center;margin-bottom:10px;">
         <div style="background:rgba(0,0,0,.2);border-radius:10px;padding:12px;">
           <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--yellow);">${p.total_points||0}</div>
-          <div style="font-size:11px;color:var(--white50);">Total Points</div>
+          <div style="font-size:11px;color:var(--white50);">Points</div>
         </div>
         <div style="background:rgba(0,0,0,.2);border-radius:10px;padding:12px;">
           <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--yellow);">${p.titles||0}</div>
           <div style="font-size:11px;color:var(--white50);">Titles</div>
         </div>
         <div style="background:rgba(0,0,0,.2);border-radius:10px;padding:12px;">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--yellow);">${hist.length}</div>
-          <div style="font-size:11px;color:var(--white50);">Matches</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--yellow);">${tourneysPlayed}</div>
+          <div style="font-size:11px;color:var(--white50);">Tournaments</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;text-align:center;margin-bottom:10px;">
+        <div style="background:rgba(0,0,0,.2);border-radius:10px;padding:12px;">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--yellow);">${matchesWon}</div>
+          <div style="font-size:11px;color:var(--white50);">Matches Won</div>
+        </div>
+        <div style="background:rgba(0,0,0,.2);border-radius:10px;padding:12px;">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--yellow);">${matchesLost}</div>
+          <div style="font-size:11px;color:var(--white50);">Matches Lost</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;text-align:center;">
+        <div style="background:rgba(0,0,0,.2);border-radius:10px;padding:12px;">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--yellow);">${gamesWon}</div>
+          <div style="font-size:11px;color:var(--white50);">Games Won</div>
+        </div>
+        <div style="background:rgba(0,0,0,.2);border-radius:10px;padding:12px;">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--yellow);">${gamesLost}</div>
+          <div style="font-size:11px;color:var(--white50);">Games Lost</div>
         </div>
       </div>
     </div>
+
     <div class="card">
       <div class="card-title">Point History</div>
       ${hist.length?hist.map(h=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;">
@@ -912,7 +958,7 @@ async function renderAccount(){
         <span style="font-family:'DM Mono',monospace;color:var(--yellow);">+${h.points_awarded} pts</span>
       </div>`).join(""):`<div style="color:var(--white50);font-size:13px;">No points yet — join a tournament!</div>`}
     </div>`;
-  }catch(e){el.innerHTML=`<div class="empty"><div class="empty-title">Error loading account</div></div>`;}
+  }catch(e){el.innerHTML=`<div class="empty"><div class="empty-title">Error loading account</div><div class="empty-sub">${e.message}</div></div>`;}
 }
 
 // ── LOAD ALL ─────────────────────────────────────────────────────────
@@ -976,7 +1022,8 @@ async function openTourney(id){
     if(t.location)chips.push(`<div class="dchip">📍 <b>${esc(t.location)}</b></div>`);
     if(t.match_datetime)chips.push(`<div class="dchip">🗓 <b>${formatDt(t.match_datetime)}</b></div>`);
     if(t.entry_fee)chips.push(`<div class="dchip">💰 Entry: <b>${t.entry_fee} EGP</b></div>`);
-    if(t.prize)chips.push(`<div class="dchip">🥇 Prize: <b>${esc(t.prize)}</b></div>`);
+    if(t.prize)chips.push(`<div class="dchip">🥇 1st: <b>${esc(t.prize)}</b></div>`);
+    if(t.prize_2nd)chips.push(`<div class="dchip">🥈 2nd: <b>${esc(t.prize_2nd)}</b></div>`);
     const tms=allTeams.filter(tm=>tm.tournament_id===id);
     chips.push(`<div class="dchip">👥 Teams: <b>${tms.length}${t.max_teams?"/"+t.max_teams:""}</b></div>`);
     if(chips.length)html+=`<div class="detail-chips">${chips.join("")}</div>`;
@@ -1448,10 +1495,11 @@ async function createTournament(){
     entry_fee:parseInt(document.getElementById("nt-fee").value)||0,
     max_teams:parseInt(document.getElementById("nt-max").value)||16,
     prize:document.getElementById("nt-prize").value.trim()||null,
+      prize_2nd:document.getElementById("nt-prize2").value.trim()||null,
     registration_form_url:document.getElementById("nt-form").value.trim()||null,
   };
   try{await db.post("tournaments",body);
-    ["nt-name","nt-loc","nt-dt","nt-fee","nt-prize","nt-form"].forEach(id=>{document.getElementById(id).value="";});
+    ["nt-name","nt-loc","nt-dt","nt-fee","nt-prize","nt-prize2","nt-form"].forEach(id=>{document.getElementById(id).value="";});
     document.getElementById("nt-max").value="16";
     toast("Tournament created!");await loadAdminData();
   }catch(e){toast("Error: "+e.message,"err");}
@@ -1536,7 +1584,8 @@ async function openEditTourney(id){
       <div class="form-group"><label class="form-label">Entry Fee (EGP)</label><input type="number" id="et-fee" value="${t.entry_fee||0}"></div>
       <div class="form-group"><label class="form-label">Max Teams</label><input type="number" id="et-max" value="${t.max_teams||16}"></div>
     </div>
-    <div class="form-group"><label class="form-label">Prize</label><input type="text" id="et-prize" value="${esc(t.prize||"")}"></div>
+    <div class="form-group"><label class="form-label">🥇 1st Place Prize</label><input type="text" id="et-prize" value="${esc(t.prize||"")}"></div>
+    <div class="form-group"><label class="form-label">🥈 2nd Place Prize</label><input type="text" id="et-prize2" value="${esc(t.prize_2nd||"")}"></div>
     <div class="form-group"><label class="form-label">Registration Form URL</label><input type="text" id="et-form" value="${esc(t.registration_form_url||"")}"></div>
     <div class="form-group"><label class="form-label">Visibility</label>
       <select id="et-vis">
@@ -1561,6 +1610,7 @@ async function saveTournament(){
         entry_fee:parseInt(document.getElementById("et-fee").value)||0,
         max_teams:parseInt(document.getElementById("et-max").value)||16,
         prize:document.getElementById("et-prize").value.trim()||null,
+        prize_2nd:document.getElementById("et-prize2").value.trim()||null,
         registration_form_url:document.getElementById("et-form").value.trim()||null,
         visibility:newVis,
       });
@@ -1572,6 +1622,7 @@ async function saveTournament(){
         entry_fee:parseInt(document.getElementById("et-fee").value)||0,
         max_teams:parseInt(document.getElementById("et-max").value)||16,
         prize:document.getElementById("et-prize").value.trim()||null,
+        prize_2nd:document.getElementById("et-prize2").value.trim()||null,
         registration_form_url:document.getElementById("et-form").value.trim()||null,
       });
     }
