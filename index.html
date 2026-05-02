@@ -318,19 +318,7 @@ td.tn{font-weight:500;}
 
 <div class="toast-wrap" id="toastWrap"></div>
 
-<!-- LOGIN MODAL -->
-<div class="overlay" id="loginModal">
-  <div class="modal">
-    <div class="modal-title">🔐 Admin Access</div>
-    <div class="form-group"><label class="form-label">Password</label>
-      <input type="password" id="adminPw" placeholder="Admin password" onkeydown="if(event.key==='Enter')tryLogin()"></div>
-    <div id="loginErr" style="color:var(--red);font-size:13px;margin-top:4px;"></div>
-    <div class="modal-actions">
-      <button class="btn" onclick="closeModal('loginModal')">Cancel</button>
-      <button class="btn btn-accent" onclick="tryLogin()">Unlock</button>
-    </div>
-  </div>
-</div>
+<!-- LOGIN MODAL removed — admin access is now via is_admin column in players table -->
 
 <!-- AUTH MODAL kept for legacy but hidden — drawer handles auth now -->
 <div class="overlay" id="authModal">
@@ -539,18 +527,13 @@ td.tn{font-weight:500;}
 
 </div>
 
-<!-- FOOTER -->
-<div style="text-align:center;padding:24px 16px 40px;border-top:1px solid rgba(255,255,255,.07);margin-top:20px;">
+  <div style="text-align:center;padding:24px 16px 40px;border-top:1px solid rgba(255,255,255,.07);margin-top:20px;">
   <div style="font-size:11px;color:rgba(255,255,255,.25);letter-spacing:1px;">THE PADEL ADDICTS &nbsp;·&nbsp; Official Tournament Platform</div>
-  <div style="margin-top:10px;">
-    <button onclick="openModal('loginModal');document.getElementById('adminPw').value='';document.getElementById('loginErr').textContent='';" style="background:none;border:none;color:rgba(255,255,255,.2);font-size:11px;cursor:pointer;letter-spacing:.5px;">Admin Access</button>
-  </div>
 </div>
 
 <script>
 const SB = "https://lkqdaxrbtvizfpafbhbp.supabase.co";
 const KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxrcWRheHJidHZpemZwYWZiaGJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyMjQ5MzAsImV4cCI6MjA5MjgwMDkzMH0.udvEaXyuWEgrSdKlkIijNkTZchnX3yOpklqAKZljz6k";
-const ADMIN_PW = "Thezeyadaddict";
 const PTS = {group:1,quarter_final:2,semi_final:3,final:5};
 
 let isAdmin=false, currentUser=null, currentSession=null;
@@ -622,7 +605,7 @@ function renderNavRight(){
   if(el){
     if(isAdmin){
       el.innerHTML=`<button class="nav-auth-btn admin-active" onclick="showTab('tab-admin')">Admin Panel</button>
-        <button class="nav-auth-btn" onclick="logout()">Lock</button>`;
+        <button class="nav-auth-btn" onclick="playerLogout()">Log Out</button>`;
     } else { el.innerHTML=""; }
   }
   // Update profile button appearance
@@ -742,8 +725,10 @@ async function doDrawerLogin(){
       db.patch("players",`id=eq.${found[0].id}`,{email}).catch(()=>{});
     }
     currentUser={...found[0],email};
+    checkAdminAccess();
     persistSession();
     renderNavRight();toast(`Welcome back, ${found[0].name||email}!`);
+    if(isAdmin){showTab("tab-admin");loadAdminData();toast("Admin panel unlocked","info");}
     if(pendingRegAfterLogin){
       closeDrawer();
       const {tid,tName,fee}=pendingRegAfterLogin;
@@ -782,17 +767,15 @@ async function doDrawerSignup(){
 }
 
 // ── ADMIN AUTH ───────────────────────────────────────────────────────
-let _adminClicks=0,_adminTimer=null;
-function adminClickCount(){
-  _adminClicks++;
-  if(_adminTimer)clearTimeout(_adminTimer);
-  _adminTimer=setTimeout(()=>{_adminClicks=0;},1500);
-  if(_adminClicks>=3){_adminClicks=0;openModal("loginModal");document.getElementById("adminPw").value="";document.getElementById("loginErr").textContent="";}
-}
-function tryLogin(){
-  const pw=document.getElementById("adminPw").value;
-  if(pw===ADMIN_PW){isAdmin=true;closeModal("loginModal");renderNavRight();showTab("tab-admin");loadAdminData();toast("Admin unlocked");}
-  else document.getElementById("loginErr").textContent="Incorrect password.";
+// Admin access is now determined by is_admin=true in the players table.
+// No hardcoded password. Log in with your player account — if is_admin is true,
+// the Admin panel appears automatically.
+function checkAdminAccess(){
+  if(currentUser&&currentUser.is_admin===true){
+    isAdmin=true;
+  } else {
+    isAdmin=false;
+  }
 }
 function logout(){isAdmin=false;renderNavRight();showTab("tab-home");}
 
@@ -850,7 +833,7 @@ async function doSignup(){
 }
 async function playerLogout(){
   if(currentSession?.access_token)await sbLogout(currentSession.access_token).catch(()=>{});
-  currentUser=null;currentSession=null;
+  currentUser=null;currentSession=null;isAdmin=false;
   clearSession();
   renderNavRight();showTab("tab-home");toast("Logged out","info");
 }
@@ -2388,6 +2371,7 @@ async function restoreSession(){
       currentUser=savedUser;
     }
     persistSession(); // update with fresh token
+    checkAdminAccess();
   }catch(e){clearSession();}
 }
 
