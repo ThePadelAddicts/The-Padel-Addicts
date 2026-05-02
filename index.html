@@ -689,9 +689,9 @@ function renderDrawerAuthForm(mode="login"){
     body.innerHTML=`
       <div class="form-group"><label class="form-label">Full Name</label><input type="text" id="d-name" placeholder="Your full name"></div>
       <div class="form-group"><label class="form-label">Email</label><input type="email" id="d-email" placeholder="you@email.com"></div>
-      <div class="form-group"><label class="form-label">Phone Number</label><input type="tel" id="d-phone" placeholder="e.g. 01012345678"></div>
+      <div class="form-group"><label class="form-label">Phone Number</label><input type="tel" id="d-phone" placeholder="01012345678"></div>
       <div class="form-group"><label class="form-label">Password</label><input type="password" id="d-pw" placeholder="Min 6 characters"></div>
-      <div style="font-size:11px;color:var(--white50);margin-bottom:8px;">📞 Phone is only visible to the admin</div>
+      <div style="font-size:11px;color:var(--white50);margin-bottom:8px;">📞 Phone is only visible to the admin · Must be a valid Egyptian number</div>
       <button class="btn btn-accent" style="width:100%;margin-top:4px;" onclick="doDrawerSignup()">Create Account</button>`;
   }
 }
@@ -703,7 +703,15 @@ async function doDrawerLogin(){
   try{
     // Attempt Supabase auth first — this validates credentials
     const res=await sbLogin(email,pw);
-    if(res.error||!res.access_token){if(err)err.textContent=res.error?.message||"Incorrect email or password.";return;}
+    if(res.error||!res.access_token){
+      const msg=res.error?.message||"";
+      if(msg.toLowerCase().includes("email not confirmed")||msg.toLowerCase().includes("email_not_confirmed")){
+        if(err)err.textContent="Please verify your email first. Check your inbox for the confirmation link.";
+      } else {
+        if(err)err.textContent=msg||"Incorrect email or password.";
+      }
+      return;
+    }
     currentSession=res;
     // Now find their player record — try by email first
     let found=await db.get("players",`email=eq.${encodeURIComponent(email)}`);
@@ -737,32 +745,41 @@ async function doDrawerLogin(){
     }
   }catch(e){if(err)err.textContent=e.message;}
 }
+function isValidEgyptPhone(p){return /^01[0125]\d{8}$/.test(p.replace(/\s/g,""));}
+function isValidEmail(e){return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);}
+
 async function doDrawerSignup(){
   const name=document.getElementById("d-name")?.value.trim();
   const email=document.getElementById("d-email")?.value.trim();
-  const phone=document.getElementById("d-phone")?.value.trim();
+  const phone=(document.getElementById("d-phone")?.value||"").trim();
   const pw=document.getElementById("d-pw")?.value;
   const err=document.getElementById("drawerAuthErr");
-  if(!name||!email||!pw){if(err)err.textContent="Fill in all fields.";return;}
+  if(!name||!email||!phone||!pw){if(err)err.textContent="Fill in all fields including phone number.";return;}
+  if(!isValidEmail(email)){if(err)err.textContent="Please enter a valid email address.";return;}
+  if(!isValidEgyptPhone(phone)){if(err)err.textContent="Phone must be a valid Egyptian number (e.g. 01012345678).";return;}
   if(pw.length<6){if(err)err.textContent="Password must be at least 6 characters.";return;}
   try{
     const res=await sbSignup(email,pw,name);
     if(res.error){if(err)err.textContent=res.error.message||"Signup failed.";return;}
-    // Always log in immediately after signup so session is guaranteed
-    const loginRes=await sbLogin(email,pw);
-    if(loginRes.error){if(err)err.textContent=loginRes.error.message||"Signup succeeded but login failed. Please log in manually.";return;}
-    currentSession=loginRes;
-    // Create player record immediately with phone
+    // Show email verification message — do NOT log in yet
+    const body=document.getElementById("drawerAuthBody");
+    if(err)err.textContent="";
+    if(body)body.innerHTML=`
+      <div style="text-align:center;padding:20px 0;">
+        <div style="font-size:36px;margin-bottom:12px;">📧</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:8px;">Check your email!</div>
+        <div style="font-size:13px;color:var(--white80);line-height:1.6;">
+          We sent a confirmation link to<br>
+          <strong style="color:var(--yellow);">${esc(email)}</strong><br><br>
+          Click the link in the email to activate your account, then come back here and log in.
+        </div>
+        <button class="btn" style="margin-top:16px;" onclick="switchDrawerTab('login')">Go to Login</button>
+      </div>`;
+    // Create player record now (they can only log in after verifying email)
     const existing=await db.get("players",`email=eq.${encodeURIComponent(email)}`);
-    let player;
     if(!existing.length){
-      const created=await db.post("players",{name,email,phone:phone||null,total_points:0,titles:0});
-      player=created[0]||{name,email,phone:phone||null,total_points:0,titles:0};
-    } else {player=existing[0];}
-    currentUser={...player,email,name,phone:phone||null};
-    persistSession();
-    await loadAll();
-    renderNavRight();toast(`Welcome ${name}!`);
+      await db.post("players",{name,email,phone,total_points:0,titles:0});
+    }
   }catch(e){if(err)err.textContent=e.message;}
 }
 
