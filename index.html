@@ -1457,7 +1457,13 @@ async function loadAdminData(){
   if(allTourneys.length)loadManage();
 }
 async function renderAdminPlayersList(){
-  const el=document.getElementById("admin-players-list");if(!el)return;
+  // Wait for element to exist in DOM (tab might not be visible yet)
+  let el=document.getElementById("admin-players-list");
+  if(!el){
+    setTimeout(renderAdminPlayersList, 300);
+    return;
+  }
+  el.innerHTML="<div style='color:var(--white50);font-size:13px;'>Loading...</div>";
   try{
     const players=await db.get("players","select=*&order=name.asc");
     if(!players.length){el.innerHTML="<div style='color:var(--white50);font-size:13px;'>No players yet</div>";return;}
