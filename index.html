@@ -318,7 +318,19 @@ td.tn{font-weight:500;}
 
 <div class="toast-wrap" id="toastWrap"></div>
 
-<!-- LOGIN MODAL removed — admin access is now via is_admin column in players table -->
+<!-- LOGIN MODAL -->
+<div class="overlay" id="loginModal">
+  <div class="modal">
+    <div class="modal-title">🔐 Admin Access</div>
+    <div class="form-group"><label class="form-label">Password</label>
+      <input type="password" id="adminPw" placeholder="Admin password" onkeydown="if(event.key==='Enter')tryLogin()"></div>
+    <div id="loginErr" style="color:var(--red);font-size:13px;margin-top:4px;"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('loginModal')">Cancel</button>
+      <button class="btn btn-accent" onclick="tryLogin()">Unlock</button>
+    </div>
+  </div>
+</div>
 
 <!-- AUTH MODAL kept for legacy but hidden — drawer handles auth now -->
 <div class="overlay" id="authModal">
@@ -527,13 +539,18 @@ td.tn{font-weight:500;}
 
 </div>
 
-  <div style="text-align:center;padding:24px 16px 40px;border-top:1px solid rgba(255,255,255,.07);margin-top:20px;">
+<!-- FOOTER -->
+<div style="text-align:center;padding:24px 16px 40px;border-top:1px solid rgba(255,255,255,.07);margin-top:20px;">
   <div style="font-size:11px;color:rgba(255,255,255,.25);letter-spacing:1px;">THE PADEL ADDICTS &nbsp;·&nbsp; Official Tournament Platform</div>
+  <div style="margin-top:10px;">
+    <button onclick="openModal('loginModal');document.getElementById('adminPw').value='';document.getElementById('loginErr').textContent='';" style="background:none;border:none;color:rgba(255,255,255,.2);font-size:11px;cursor:pointer;letter-spacing:.5px;">Admin Access</button>
+  </div>
 </div>
 
 <script>
 const SB = "https://lkqdaxrbtvizfpafbhbp.supabase.co";
 const KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxrcWRheHJidHZpemZwYWZiaGJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyMjQ5MzAsImV4cCI6MjA5MjgwMDkzMH0.udvEaXyuWEgrSdKlkIijNkTZchnX3yOpklqAKZljz6k";
+const ADMIN_PW = "Thezeyadaddict";
 const PTS = {group:1,quarter_final:2,semi_final:3,final:5};
 
 let isAdmin=false, currentUser=null, currentSession=null;
@@ -605,7 +622,7 @@ function renderNavRight(){
   if(el){
     if(isAdmin){
       el.innerHTML=`<button class="nav-auth-btn admin-active" onclick="showTab('tab-admin')">Admin Panel</button>
-        <button class="nav-auth-btn" onclick="playerLogout()">Log Out</button>`;
+        <button class="nav-auth-btn" onclick="logout()">Lock</button>`;
     } else { el.innerHTML=""; }
   }
   // Update profile button appearance
@@ -689,9 +706,9 @@ function renderDrawerAuthForm(mode="login"){
     body.innerHTML=`
       <div class="form-group"><label class="form-label">Full Name</label><input type="text" id="d-name" placeholder="Your full name"></div>
       <div class="form-group"><label class="form-label">Email</label><input type="email" id="d-email" placeholder="you@email.com"></div>
-      <div class="form-group"><label class="form-label">Phone Number</label><input type="tel" id="d-phone" placeholder="01012345678"></div>
+      <div class="form-group"><label class="form-label">Phone Number</label><input type="tel" id="d-phone" placeholder="e.g. 01012345678"></div>
       <div class="form-group"><label class="form-label">Password</label><input type="password" id="d-pw" placeholder="Min 6 characters"></div>
-      <div style="font-size:11px;color:var(--white50);margin-bottom:8px;">📞 Phone is only visible to the admin · Must be a valid Egyptian number</div>
+      <div style="font-size:11px;color:var(--white50);margin-bottom:8px;">📞 Phone is only visible to the admin</div>
       <button class="btn btn-accent" style="width:100%;margin-top:4px;" onclick="doDrawerSignup()">Create Account</button>`;
   }
 }
@@ -703,15 +720,7 @@ async function doDrawerLogin(){
   try{
     // Attempt Supabase auth first — this validates credentials
     const res=await sbLogin(email,pw);
-    if(res.error||!res.access_token){
-      const msg=res.error?.message||"";
-      if(msg.toLowerCase().includes("email not confirmed")||msg.toLowerCase().includes("email_not_confirmed")){
-        if(err)err.textContent="Please verify your email first. Check your inbox for the confirmation link.";
-      } else {
-        if(err)err.textContent=msg||"Incorrect email or password.";
-      }
-      return;
-    }
+    if(res.error||!res.access_token){if(err)err.textContent=res.error?.message||"Incorrect email or password.";return;}
     currentSession=res;
     // Now find their player record — try by email first
     let found=await db.get("players",`email=eq.${encodeURIComponent(email)}`);
@@ -733,10 +742,8 @@ async function doDrawerLogin(){
       db.patch("players",`id=eq.${found[0].id}`,{email}).catch(()=>{});
     }
     currentUser={...found[0],email};
-    checkAdminAccess();
     persistSession();
     renderNavRight();toast(`Welcome back, ${found[0].name||email}!`);
-    if(isAdmin){showTab("tab-admin");loadAdminData();toast("Admin panel unlocked","info");}
     if(pendingRegAfterLogin){
       closeDrawer();
       const {tid,tName,fee}=pendingRegAfterLogin;
@@ -745,54 +752,47 @@ async function doDrawerLogin(){
     }
   }catch(e){if(err)err.textContent=e.message;}
 }
-function isValidEgyptPhone(p){return /^01[0125]\d{8}$/.test(p.replace(/\s/g,""));}
-function isValidEmail(e){return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);}
-
 async function doDrawerSignup(){
   const name=document.getElementById("d-name")?.value.trim();
   const email=document.getElementById("d-email")?.value.trim();
-  const phone=(document.getElementById("d-phone")?.value||"").trim();
+  const phone=document.getElementById("d-phone")?.value.trim();
   const pw=document.getElementById("d-pw")?.value;
   const err=document.getElementById("drawerAuthErr");
-  if(!name||!email||!phone||!pw){if(err)err.textContent="Fill in all fields including phone number.";return;}
-  if(!isValidEmail(email)){if(err)err.textContent="Please enter a valid email address.";return;}
-  if(!isValidEgyptPhone(phone)){if(err)err.textContent="Phone must be a valid Egyptian number (e.g. 01012345678).";return;}
+  if(!name||!email||!pw){if(err)err.textContent="Fill in all fields.";return;}
   if(pw.length<6){if(err)err.textContent="Password must be at least 6 characters.";return;}
   try{
     const res=await sbSignup(email,pw,name);
     if(res.error){if(err)err.textContent=res.error.message||"Signup failed.";return;}
-    // Show email verification message — do NOT log in yet
-    const body=document.getElementById("drawerAuthBody");
-    if(err)err.textContent="";
-    if(body)body.innerHTML=`
-      <div style="text-align:center;padding:20px 0;">
-        <div style="font-size:36px;margin-bottom:12px;">📧</div>
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:8px;">Check your email!</div>
-        <div style="font-size:13px;color:var(--white80);line-height:1.6;">
-          We sent a confirmation link to<br>
-          <strong style="color:var(--yellow);">${esc(email)}</strong><br><br>
-          Click the link in the email to activate your account, then come back here and log in.
-        </div>
-        <button class="btn" style="margin-top:16px;" onclick="switchDrawerTab('login')">Go to Login</button>
-      </div>`;
-    // Create player record now (they can only log in after verifying email)
+    // Always log in immediately after signup so session is guaranteed
+    const loginRes=await sbLogin(email,pw);
+    if(loginRes.error){if(err)err.textContent=loginRes.error.message||"Signup succeeded but login failed. Please log in manually.";return;}
+    currentSession=loginRes;
+    // Create player record immediately with phone
     const existing=await db.get("players",`email=eq.${encodeURIComponent(email)}`);
+    let player;
     if(!existing.length){
-      await db.post("players",{name,email,phone,total_points:0,titles:0});
-    }
+      const created=await db.post("players",{name,email,phone:phone||null,total_points:0,titles:0});
+      player=created[0]||{name,email,phone:phone||null,total_points:0,titles:0};
+    } else {player=existing[0];}
+    currentUser={...player,email,name,phone:phone||null};
+    persistSession();
+    await loadAll();
+    renderNavRight();toast(`Welcome ${name}!`);
   }catch(e){if(err)err.textContent=e.message;}
 }
 
 // ── ADMIN AUTH ───────────────────────────────────────────────────────
-// Admin access is now determined by is_admin=true in the players table.
-// No hardcoded password. Log in with your player account — if is_admin is true,
-// the Admin panel appears automatically.
-function checkAdminAccess(){
-  if(currentUser&&currentUser.is_admin===true){
-    isAdmin=true;
-  } else {
-    isAdmin=false;
-  }
+let _adminClicks=0,_adminTimer=null;
+function adminClickCount(){
+  _adminClicks++;
+  if(_adminTimer)clearTimeout(_adminTimer);
+  _adminTimer=setTimeout(()=>{_adminClicks=0;},1500);
+  if(_adminClicks>=3){_adminClicks=0;openModal("loginModal");document.getElementById("adminPw").value="";document.getElementById("loginErr").textContent="";}
+}
+function tryLogin(){
+  const pw=document.getElementById("adminPw").value;
+  if(pw===ADMIN_PW){isAdmin=true;closeModal("loginModal");renderNavRight();showTab("tab-admin");loadAdminData();toast("Admin unlocked");}
+  else document.getElementById("loginErr").textContent="Incorrect password.";
 }
 function logout(){isAdmin=false;renderNavRight();showTab("tab-home");}
 
@@ -850,7 +850,7 @@ async function doSignup(){
 }
 async function playerLogout(){
   if(currentSession?.access_token)await sbLogout(currentSession.access_token).catch(()=>{});
-  currentUser=null;currentSession=null;isAdmin=false;
+  currentUser=null;currentSession=null;
   clearSession();
   renderNavRight();showTab("tab-home");toast("Logged out","info");
 }
@@ -887,15 +887,22 @@ async function renderAccount(){
       const myTeams=[...myTeams1,...myTeams2];
       const startedIds=new Set(allTourneys.filter(t=>t.status!=='registration').map(t=>t.id));
       tourneysPlayed=[...new Set(myTeams.map(t=>t.tournament_id).filter(id=>startedIds.has(id)))].length;
-      for(const tm of myTeams){
-        const ms1=await db.get("matches",`team1_id=eq.${tm.id}&status=eq.completed`);
-        const ms2=await db.get("matches",`team2_id=eq.${tm.id}&status=eq.completed`);
-        for(const m of [...ms1,...ms2]){
+      if(myTeams.length){
+        const teamIds=myTeams.map(tm=>tm.id).join(",");
+        const [allMs1,allMs2]=await Promise.all([
+          db.get("matches",`team1_id=in.(${teamIds})&status=eq.completed`),
+          db.get("matches",`team2_id=in.(${teamIds})&status=eq.completed`)
+        ]);
+        const seen=new Set();
+        for(const m of [...allMs1,...allMs2]){
+          if(seen.has(m.id))continue; seen.add(m.id);
+          const myTeam=myTeams.find(tm=>tm.id===m.team1_id||tm.id===m.team2_id);
+          if(!myTeam)continue;
           matchesPlayed++;
-          const isT1=m.team1_id===tm.id;
+          const isT1=m.team1_id===myTeam.id;
           gamesWon+=(isT1?m.team1_sets:m.team2_sets)||0;
           gamesLost+=(isT1?m.team2_sets:m.team1_sets)||0;
-          if(m.winner_id===tm.id) matchesWon++; else matchesLost++;
+          if(m.winner_id===myTeam.id) matchesWon++; else matchesLost++;
         }
       }
     }
@@ -1454,17 +1461,21 @@ async function loadAdminData(){
 }
 async function renderAdminPlayersList(){
   const el=document.getElementById("admin-players-list");if(!el)return;
-  if(!allPlayers.length){el.innerHTML="<div style='color:var(--white50);font-size:13px;'>No players yet</div>";return;}
-  el.innerHTML=allPlayers.map(p=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);">
-    <div style="cursor:pointer;" onclick="openPlayerProfileModal('${p.id}',true)">
-      <div style="font-weight:500;font-size:13px;">👤 ${esc(p.name)}</div>
-      <div style="font-size:11px;color:var(--white50);">${p.email||"—"} ${p.phone?`· 📞 ${esc(p.phone)}`:""}</div>
-    </div>
-    <div style="text-align:right;">
-      <div style="font-family:'DM Mono',monospace;color:var(--yellow);font-size:13px;">${p.total_points||0} pts</div>
-      <div style="font-size:11px;color:var(--white50);">${p.titles||0} titles</div>
-    </div>
-  </div>`).join("");
+  try{
+    // Always fetch fresh from DB so we get phone numbers and emails
+    const players=await db.get("players","order=name.asc");
+    if(!players.length){el.innerHTML="<div style='color:var(--white50);font-size:13px;'>No players yet</div>";return;}
+    el.innerHTML=players.map(p=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);">
+      <div style="cursor:pointer;" onclick="openPlayerProfileModal('${p.id}',true)">
+        <div style="font-weight:500;font-size:13px;">👤 ${esc(p.name)}</div>
+        <div style="font-size:11px;color:var(--white50);">${p.email||"—"} ${p.phone?`· 📞 ${esc(p.phone)}`:""}</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-family:'DM Mono',monospace;color:var(--yellow);font-size:13px;">${p.total_points||0} pts</div>
+        <div style="font-size:11px;color:var(--white50);">${p.titles||0} titles</div>
+      </div>
+    </div>`).join("");
+  }catch(e){el.innerHTML=`<div style='color:var(--red);font-size:13px;'>Error loading players: ${e.message}</div>`;}
 }
 
 function populateAdminSelects(){
@@ -1962,25 +1973,36 @@ async function openPlayerProfileModal(playerId, showPhone){
     modal.innerHTML='<div class="modal modal-wide"><div class="modal-title" id="profileModalTitle">Player Profile</div><div id="profileModalBody"></div><div class="modal-actions"><button class="btn" onclick="closeModal(\'profileModal\')">Close</button></div></div>';
     document.body.appendChild(modal);
   }
+  document.getElementById("profileModalBody").innerHTML='<div style="text-align:center;padding:30px;"><div class="spin"></div></div>';
+  openModal("profileModal");
   try{
     const players=await db.get("players",`id=eq.${playerId}`);
     if(!players.length){toast("Player not found","err");return;}
     const p=players[0];
-    const teams1=await db.get("teams",`player1_id=eq.${p.id}&registration_status=eq.approved`);
-    const teams2=await db.get("teams",`player2_id=eq.${p.id}&registration_status=eq.approved`);
+    const [teams1,teams2]=await Promise.all([
+      db.get("teams",`player1_id=eq.${p.id}&registration_status=eq.approved`),
+      db.get("teams",`player2_id=eq.${p.id}&registration_status=eq.approved`)
+    ]);
     const myTeams=[...teams1,...teams2];
     const startedTourneyIds=new Set(allTourneys.filter(t=>t.status!=='registration').map(t=>t.id));
     const tourneyIds=[...new Set(myTeams.map(t=>t.tournament_id).filter(id=>startedTourneyIds.has(id)))];
     let matchesPlayed=0,matchesWon=0,matchesLost=0,gamesWon=0,gamesLost=0;
-    for(const tm of myTeams){
-      const ms1=await db.get("matches",`team1_id=eq.${tm.id}&status=eq.completed`);
-      const ms2=await db.get("matches",`team2_id=eq.${tm.id}&status=eq.completed`);
-      for(const m of [...ms1,...ms2]){
+    if(myTeams.length){
+      const teamIds=myTeams.map(tm=>tm.id).join(",");
+      const [allMs1,allMs2]=await Promise.all([
+        db.get("matches",`team1_id=in.(${teamIds})&status=eq.completed`),
+        db.get("matches",`team2_id=in.(${teamIds})&status=eq.completed`)
+      ]);
+      const seen=new Set();
+      for(const m of [...allMs1,...allMs2]){
+        if(seen.has(m.id))continue; seen.add(m.id);
+        const myTeam=myTeams.find(tm=>tm.id===m.team1_id||tm.id===m.team2_id);
+        if(!myTeam)continue;
         matchesPlayed++;
-        const isT1=m.team1_id===tm.id;
+        const isT1=m.team1_id===myTeam.id;
         gamesWon+=(isT1?m.team1_sets:m.team2_sets)||0;
         gamesLost+=(isT1?m.team2_sets:m.team1_sets)||0;
-        if(m.winner_id===tm.id) matchesWon++; else matchesLost++;
+        if(m.winner_id===myTeam.id) matchesWon++; else matchesLost++;
       }
     }
     const avatarHtml=p.avatar_url
@@ -2018,15 +2040,24 @@ async function openTeamProfileModal(teamId){
       const ps=await db.get("players",`id=eq.${pid}`);
       if(!ps.length)return`<div class="profile-card"><div class="profile-avatar-lg">👤</div><div class="profile-name-lg">Unknown</div></div>`;
       const p=ps[0];
-      const t1=await db.get("teams",`player1_id=eq.${pid}&registration_status=eq.approved`);
-      const t2=await db.get("teams",`player2_id=eq.${pid}&registration_status=eq.approved`);
+      const [t1,t2]=await Promise.all([
+        db.get("teams",`player1_id=eq.${pid}&registration_status=eq.approved`),
+        db.get("teams",`player2_id=eq.${pid}&registration_status=eq.approved`)
+      ]);
       const myTeams=[...t1,...t2];
       const tourneyIds=[...new Set(myTeams.map(t=>t.tournament_id))];
       let matchesPlayed=0,matchesWon=0,matchesLost=0,gamesWon=0,gamesLost=0;
-      for(const tm of myTeams){
-        const ms1=await db.get("matches",`team1_id=eq.${tm.id}&status=eq.completed`);
-        const ms2=await db.get("matches",`team2_id=eq.${tm.id}&status=eq.completed`);
-        for(const m of [...ms1,...ms2]){
+      if(myTeams.length){
+        const teamIds=myTeams.map(tm=>tm.id).join(",");
+        const [allMs1,allMs2]=await Promise.all([
+          db.get("matches",`team1_id=in.(${teamIds})&status=eq.completed`),
+          db.get("matches",`team2_id=in.(${teamIds})&status=eq.completed`)
+        ]);
+        const seen=new Set();
+        for(const m of [...allMs1,...allMs2]){
+          if(seen.has(m.id))continue; seen.add(m.id);
+          const myTeam=myTeams.find(tm=>tm.id===m.team1_id||tm.id===m.team2_id);
+          if(!myTeam)continue;
           matchesPlayed++;
           const isT1=m.team1_id===tm.id;
           gamesWon+=(isT1?m.team1_sets:m.team2_sets)||0;
@@ -2388,7 +2419,6 @@ async function restoreSession(){
       currentUser=savedUser;
     }
     persistSession(); // update with fresh token
-    checkAdminAccess();
   }catch(e){clearSession();}
 }
 
