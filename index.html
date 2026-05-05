@@ -319,16 +319,6 @@ td.tn{font-weight:500;}
 <div class="toast-wrap" id="toastWrap"></div>
 
 <!-- LOGIN MODAL -->
-<div class="overlay" id="loginModal">
-  <div class="modal">
-    <div class="modal-title">🔐 Admin Access</div>
-    <div class="form-group"><label class="form-label">Password</label>
-      <input type="password" id="adminPw" placeholder="Admin password" onkeydown="if(event.key==='Enter')tryLogin()"></div>
-    <div id="loginErr" style="color:var(--red);font-size:13px;margin-top:4px;"></div>
-    <div class="modal-actions">
-      <button class="btn" onclick="closeModal('loginModal')">Cancel</button>
-      <button class="btn btn-accent" onclick="tryLogin()">Unlock</button>
-    </div>
   </div>
 </div>
 
@@ -542,15 +532,12 @@ td.tn{font-weight:500;}
 <!-- FOOTER -->
 <div style="text-align:center;padding:24px 16px 40px;border-top:1px solid rgba(255,255,255,.07);margin-top:20px;">
   <div style="font-size:11px;color:rgba(255,255,255,.25);letter-spacing:1px;">THE PADEL ADDICTS &nbsp;·&nbsp; Official Tournament Platform</div>
-  <div style="margin-top:10px;">
-    <button onclick="openModal('loginModal');document.getElementById('adminPw').value='';document.getElementById('loginErr').textContent='';" style="background:none;border:none;color:rgba(255,255,255,.2);font-size:11px;cursor:pointer;letter-spacing:.5px;">Admin Access</button>
-  </div>
+
 </div>
 
 <script>
 const SB = "https://lkqdaxrbtvizfpafbhbp.supabase.co";
 const KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxrcWRheHJidHZpemZwYWZiaGJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyMjQ5MzAsImV4cCI6MjA5MjgwMDkzMH0.udvEaXyuWEgrSdKlkIijNkTZchnX3yOpklqAKZljz6k";
-const ADMIN_PW = "Thezeyadaddict";
 const PTS = {group:1,quarter_final:2,semi_final:3,final:5};
 
 let isAdmin=false, currentUser=null, currentSession=null;
@@ -742,8 +729,11 @@ async function doDrawerLogin(){
       db.patch("players",`id=eq.${found[0].id}`,{email}).catch(()=>{});
     }
     currentUser={...found[0],email};
+    isAdmin=found[0].is_admin===true;
     persistSession();
-    renderNavRight();toast(`Welcome back, ${found[0].name||email}!`);
+    renderNavRight();
+    if(isAdmin){loadAdminData();}
+    toast(`Welcome back, ${found[0].name||email}!${isAdmin?' (Admin)':''}`);
     if(pendingRegAfterLogin){
       closeDrawer();
       const {tid,tName,fee}=pendingRegAfterLogin;
@@ -784,15 +774,10 @@ async function doDrawerSignup(){
 // ── ADMIN AUTH ───────────────────────────────────────────────────────
 let _adminClicks=0,_adminTimer=null;
 function adminClickCount(){
-  _adminClicks++;
-  if(_adminTimer)clearTimeout(_adminTimer);
-  _adminTimer=setTimeout(()=>{_adminClicks=0;},1500);
-  if(_adminClicks>=3){_adminClicks=0;openModal("loginModal");document.getElementById("adminPw").value="";document.getElementById("loginErr").textContent="";}
+  // Logo click no longer opens admin modal — admin access is automatic on login
 }
 function tryLogin(){
-  const pw=document.getElementById("adminPw").value;
-  if(pw===ADMIN_PW){isAdmin=true;closeModal("loginModal");renderNavRight();showTab("tab-admin");loadAdminData();toast("Admin unlocked");}
-  else document.getElementById("loginErr").textContent="Incorrect password.";
+  // Legacy — no longer used
 }
 function logout(){isAdmin=false;renderNavRight();showTab("tab-home");}
 
@@ -828,7 +813,10 @@ async function doLogin(){
     if(res.error||!res.access_token){err.textContent=res.error?.message||"Incorrect password.";return;}
     currentSession=res;
     currentUser={...existing[0],email};
-    closeModal("authModal");renderNavRight();renderAccount();showTab("tab-account");toast(`Welcome back, ${existing[0].name||email}!`);
+    isAdmin=existing[0].is_admin===true;
+    closeModal("authModal");renderNavRight();
+    if(isAdmin){loadAdminData();}
+    renderAccount();showTab(isAdmin?"tab-admin":"tab-account");toast(`Welcome back, ${existing[0].name||email}!${isAdmin?' (Admin)':''}`);
   }catch(e){err.textContent=e.message;}
 }
 async function doSignup(){
@@ -850,7 +838,7 @@ async function doSignup(){
 }
 async function playerLogout(){
   if(currentSession?.access_token)await sbLogout(currentSession.access_token).catch(()=>{});
-  currentUser=null;currentSession=null;
+  currentUser=null;currentSession=null;isAdmin=false;
   clearSession();
   renderNavRight();showTab("tab-home");toast("Logged out","info");
 }
