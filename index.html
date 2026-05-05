@@ -1458,20 +1458,23 @@ async function loadAdminData(){
 }
 async function renderAdminPlayersList(){
   const el=document.getElementById("admin-players-list");if(!el)return;
-  if(!allPlayers.length){el.innerHTML="<div style='color:var(--white50);font-size:13px;'>No players yet</div>";return;}
-  el.innerHTML=allPlayers.map(p=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);">
-    <div style="cursor:pointer;flex:1;" onclick="openPlayerProfileModal('${p.id}',true)">
-      <div style="font-weight:500;font-size:13px;">👤 ${esc(p.name)}</div>
-      <div style="font-size:11px;color:var(--white50);">${p.email||"—"} ${p.phone?`· 📞 ${esc(p.phone)}`:""}</div>
-    </div>
-    <div style="display:flex;align-items:center;gap:8px;">
-      <div style="text-align:right;">
-        <div style="font-family:'DM Mono',monospace;color:var(--yellow);font-size:13px;">${p.total_points||0} pts</div>
-        <div style="font-size:11px;color:var(--white50);">${p.titles||0} titles</div>
+  try{
+    const players=await db.get("players","select=*&order=name.asc");
+    if(!players.length){el.innerHTML="<div style='color:var(--white50);font-size:13px;'>No players yet</div>";return;}
+    el.innerHTML=players.map(p=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);">
+      <div style="cursor:pointer;flex:1;" onclick="openPlayerProfileModal('${p.id}',true)">
+        <div style="font-weight:500;font-size:13px;">👤 ${esc(p.name)}</div>
+        <div style="font-size:11px;color:var(--white50);">${p.email||"—"} ${p.phone?`· 📞 ${esc(p.phone)}`:""}</div>
       </div>
-      <button class="btn btn-sm" onclick="openEditPlayerModalWithData(${JSON.stringify({id:p.id,name:p.name,phone:p.phone||'',total_points:p.total_points||0,titles:p.titles||0}).replace(/"/g,'&quot;')})">✏</button>
-    </div>
-  </div>`).join("");
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div style="text-align:right;">
+          <div style="font-family:'DM Mono',monospace;color:var(--yellow);font-size:13px;">${p.total_points||0} pts</div>
+          <div style="font-size:11px;color:var(--white50);">${p.titles||0} titles</div>
+        </div>
+        <button class="btn btn-sm" onclick="openEditPlayerModalWithData(${JSON.stringify({id:p.id,name:p.name,phone:p.phone||'',total_points:p.total_points||0,titles:p.titles||0}).replace(/"/g,'&quot;')})">✏</button>
+      </div>
+    </div>`).join("");
+  }catch(e){el.innerHTML=`<div style='color:var(--red);font-size:13px;'>Error: ${e.message}</div>`;}
 }
 
 function populateAdminSelects(){
