@@ -710,11 +710,11 @@ async function doDrawerLogin(){
     if(res.error||!res.access_token){if(err)err.textContent=res.error?.message||"Incorrect email or password.";return;}
     currentSession=res;
     // Now find their player record — try by email first
-    let found=await db.get("players",`email=eq.${encodeURIComponent(email)}`);
+    let found=await db.get("players",`email=eq.${encodeURIComponent(email)}&select=*`);
     // Fallback: match by the name stored in Supabase auth metadata (for old records without email)
     if(!found.length){
       const authName=res.user?.user_metadata?.full_name||"";
-      if(authName)found=await db.get("players",`name=ilike.${encodeURIComponent(authName)}`);
+      if(authName)found=await db.get("players",`name=ilike.${encodeURIComponent(authName)}&select=*`);
     }
     // If still not found — they signed up via Supabase auth but have no player record
     // This means they never properly registered on the site
@@ -966,7 +966,7 @@ async function renderAccount(){
 async function loadAll(){
   try{
     [allPlayers,allTourneys,allTeams]=await Promise.all([
-      db.get("players","order=total_points.desc"),
+      db.get("players","select=*&order=total_points.desc"),
       db.get("tournaments","order=created_at.desc"),
       db.get("teams","order=name.asc"),
     ]);
