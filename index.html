@@ -591,6 +591,8 @@ function showTab(id){
   document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));
   const map={"tab-home":0,"tab-rankings":1};
   if(map[id]!==undefined)document.querySelectorAll(".nav-btn")[map[id]]?.classList.add("active");
+  // Load admin players list whenever admin tab is shown
+  if(id==="tab-admin"&&isAdmin) renderAdminPlayersList();
 }
 
 // ── NAV RIGHT ────────────────────────────────────────────────────────
@@ -1457,12 +1459,8 @@ async function loadAdminData(){
   if(allTourneys.length)loadManage();
 }
 async function renderAdminPlayersList(){
-  // Wait for element to exist in DOM (tab might not be visible yet)
-  let el=document.getElementById("admin-players-list");
-  if(!el){
-    setTimeout(renderAdminPlayersList, 300);
-    return;
-  }
+  const el=document.getElementById("admin-players-list");
+  if(!el)return;
   el.innerHTML="<div style='color:var(--white50);font-size:13px;'>Loading...</div>";
   try{
     const players=await db.get("players","select=*&order=name.asc");
