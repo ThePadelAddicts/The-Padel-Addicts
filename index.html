@@ -934,7 +934,7 @@ async function renderAccount(){
         </div>
       </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;text-align:center;margin-bottom:10px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;text-align:center;margin-bottom:10px;">
         <div style="background:rgba(0,0,0,.2);border-radius:10px;padding:12px;">
           <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--yellow);">${matchesWon}</div>
           <div style="font-size:11px;color:var(--white50);">Matches Won</div>
@@ -942,6 +942,10 @@ async function renderAccount(){
         <div style="background:rgba(0,0,0,.2);border-radius:10px;padding:12px;">
           <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--yellow);">${matchesLost}</div>
           <div style="font-size:11px;color:var(--white50);">Matches Lost</div>
+        </div>
+        <div style="background:rgba(0,0,0,.2);border-radius:10px;padding:12px;">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--yellow);">${matchesPlayed>0?Math.round(matchesWon/matchesPlayed*100):0}%</div>
+          <div style="font-size:11px;color:var(--white50);">Win Rate</div>
         </div>
       </div>
 
@@ -1456,13 +1460,16 @@ async function renderAdminPlayersList(){
   const el=document.getElementById("admin-players-list");if(!el)return;
   if(!allPlayers.length){el.innerHTML="<div style='color:var(--white50);font-size:13px;'>No players yet</div>";return;}
   el.innerHTML=allPlayers.map(p=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);">
-    <div style="cursor:pointer;" onclick="openPlayerProfileModal('${p.id}',true)">
+    <div style="cursor:pointer;flex:1;" onclick="openPlayerProfileModal('${p.id}',true)">
       <div style="font-weight:500;font-size:13px;">👤 ${esc(p.name)}</div>
       <div style="font-size:11px;color:var(--white50);">${p.email||"—"} ${p.phone?`· 📞 ${esc(p.phone)}`:""}</div>
     </div>
-    <div style="text-align:right;">
-      <div style="font-family:'DM Mono',monospace;color:var(--yellow);font-size:13px;">${p.total_points||0} pts</div>
-      <div style="font-size:11px;color:var(--white50);">${p.titles||0} titles</div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div style="text-align:right;">
+        <div style="font-family:'DM Mono',monospace;color:var(--yellow);font-size:13px;">${p.total_points||0} pts</div>
+        <div style="font-size:11px;color:var(--white50);">${p.titles||0} titles</div>
+      </div>
+      <button class="btn btn-sm" onclick="openEditPlayerModalWithData(${JSON.stringify({id:p.id,name:p.name,phone:p.phone||'',total_points:p.total_points||0,titles:p.titles||0}).replace(/"/g,'&quot;')})">✏</button>
     </div>
   </div>`).join("");
 }
@@ -1996,12 +2003,14 @@ async function openPlayerProfileModal(playerId, showPhone){
       <div class="profile-stat"><span>Matches Played</span><span class="profile-stat-val">${matchesPlayed}</span></div>
       <div class="profile-stat"><span>Matches Won</span><span class="profile-stat-val">${matchesWon}</span></div>
       <div class="profile-stat"><span>Matches Lost</span><span class="profile-stat-val">${matchesLost}</span></div>
+      <div class="profile-stat"><span>Win Rate</span><span class="profile-stat-val">${matchesPlayed>0?Math.round(matchesWon/matchesPlayed*100):0}%</span></div>
       <div class="profile-stat"><span>Games Won</span><span class="profile-stat-val">${gamesWon}</span></div>
       <div class="profile-stat"><span>Games Lost</span><span class="profile-stat-val">${gamesLost}</span></div>
       <div class="profile-stat"><span>Total Points</span><span class="profile-stat-val">${p.total_points||0} pts</span></div>
     </div>
     ${isAdmin?`<div style="display:flex;gap:8px;margin-top:14px;">
-      <button class="btn btn-danger btn-sm" style="flex:1;" onclick="closeModal('profileModal');deletePlayer('${p.id}','${esc(p.name)}')">Delete Player</button>
+      <button class="btn btn-danger btn-sm" onclick="closeModal('profileModal');deletePlayer('${p.id}','${esc(p.name)}')">Delete</button>
+      <button class="btn btn-accent btn-sm" onclick="closeModal('profileModal');openEditPlayerModal('${p.id}')">✏ Edit Player</button>
     </div>`:''}`;
     openModal("profileModal");
   }catch(e){toast("Error loading profile: "+e.message,"err");}
@@ -2043,6 +2052,7 @@ async function openTeamProfileModal(teamId){
         <div class="profile-stat"><span>Matches Played</span><span class="profile-stat-val">${matchesPlayed}</span></div>
         <div class="profile-stat"><span>Matches Won</span><span class="profile-stat-val">${matchesWon}</span></div>
         <div class="profile-stat"><span>Matches Lost</span><span class="profile-stat-val">${matchesLost}</span></div>
+        <div class="profile-stat"><span>Win Rate</span><span class="profile-stat-val">${matchesPlayed>0?Math.round(matchesWon/matchesPlayed*100):0}%</span></div>
         <div class="profile-stat"><span>Games Won</span><span class="profile-stat-val">${gamesWon}</span></div>
         <div class="profile-stat"><span>Games Lost</span><span class="profile-stat-val">${gamesLost}</span></div>
         <div class="profile-stat"><span>Total Points</span><span class="profile-stat-val">${p.total_points||0} pts</span></div>
@@ -2346,6 +2356,59 @@ async function notifyAdmin(msg){
     const encoded=encodeURIComponent(msg);
     await fetch(`https://api.callmebot.com/whatsapp.php?phone=${CALLMEBOT_PHONE}&text=${encoded}&apikey=${CALLMEBOT_APIKEY}`,{mode:'no-cors'});
   }catch(e){/* silent fail */}
+}
+
+// ── EDIT PLAYER MODAL (Admin) ────────────────────────────────────────
+function openEditPlayerModal(playerId){
+  const p=allPlayers.find(x=>x.id===playerId);
+  if(!p){toast("Player not found","err");return;}
+  // reuse existing edit player modal if it exists
+  openEditPlayerModalWithData(p);
+}
+async function openEditPlayerModalWithData(p){
+  const existing=await db.get("players",`id=eq.${p.id}&select=*`);
+  const pl=existing[0]||p;
+  let modal=document.getElementById("editPlayerModal");
+  if(!modal){
+    modal=document.createElement("div");
+    modal.id="editPlayerModal";
+    modal.className="overlay";
+    modal.innerHTML=`<div class="modal">
+      <div class="modal-title">✏ Edit Player</div>
+      <div id="editPlayerModalBody"></div>
+      <div id="editPlayerModalErr" style="color:var(--red);font-size:13px;margin-top:6px;"></div>
+      <div class="modal-actions">
+        <button class="btn" onclick="closeModal('editPlayerModal')">Cancel</button>
+        <button class="btn btn-accent" onclick="saveEditPlayer()">Save</button>
+      </div>
+    </div>`;
+    document.body.appendChild(modal);
+  }
+  document.getElementById("editPlayerModalBody").innerHTML=`
+    <input type="hidden" id="epm-id" value="${pl.id}">
+    <div class="form-group"><label class="form-label">Full Name</label><input type="text" id="epm-name" value="${esc(pl.name||'')}"></div>
+    <div class="form-group"><label class="form-label">Phone</label><input type="tel" id="epm-phone" value="${esc(pl.phone||'')}"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Total Points</label><input type="number" id="epm-pts" value="${pl.total_points||0}" min="0"></div>
+      <div class="form-group"><label class="form-label">Titles (Tournaments Won)</label><input type="number" id="epm-titles" value="${pl.titles||0}" min="0"></div>
+    </div>`;
+  openModal("editPlayerModal");
+}
+async function saveEditPlayer(){
+  const id=document.getElementById("epm-id").value;
+  const name=document.getElementById("epm-name").value.trim();
+  const phone=document.getElementById("epm-phone").value.trim();
+  const pts=parseInt(document.getElementById("epm-pts").value)||0;
+  const titles=parseInt(document.getElementById("epm-titles").value)||0;
+  const err=document.getElementById("editPlayerModalErr");
+  if(!name){err.textContent="Name is required.";return;}
+  try{
+    await db.patch("players",`id=eq.${id}`,{name,phone:phone||null,total_points:pts,titles});
+    closeModal("editPlayerModal");
+    toast("Player updated!");
+    await loadAll();
+    renderAdminPlayersList();
+  }catch(e){err.textContent="Error: "+e.message;}
 }
 
 // ── UTILS ─────────────────────────────────────────────────────────────
