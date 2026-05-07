@@ -468,7 +468,8 @@ td.tn{font-weight:500;}
       <div class="form-group"><label class="form-label">Tournament Name</label><input type="text" id="nt-name" placeholder="e.g. Padel Addicts Open — Summer 2026"></div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Location</label><input type="text" id="nt-loc" placeholder="e.g. New Cairo Courts"></div>
-        <div class="form-group"><label class="form-label">Date & Time</label><input type="datetime-local" id="nt-dt"></div>
+        <div class="form-group"><label class="form-label">Start Time</label><input type="datetime-local" id="nt-dt"></div>
+        <div class="form-group"><label class="form-label">End Time</label><input type="datetime-local" id="nt-dt-end"></div>
       </div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Entry Fee (EGP)</label><input type="number" id="nt-fee" placeholder="0"></div>
@@ -1000,7 +1001,7 @@ function renderTourneyList(){
       <div class="t-icon">${isPrivate?'🔒':'🏆'}</div>
       <div style="flex:1;">
         <div class="t-name">${esc(t.name)}</div>
-        <div class="t-meta">${t.location?`📍 ${esc(t.location)} &nbsp;`:""} ${t.match_datetime?`🗓 ${formatDt(t.match_datetime)}`:""}
+        <div class="t-meta">${t.location?`📍 ${esc(t.location)} &nbsp;`:""} ${t.match_datetime?`🗓 ${formatDt(t.match_datetime)}`:""} ${t.end_datetime?`– ${formatTime(t.end_datetime)}`:""}
         ${t.entry_fee?` &nbsp;💰 ${t.entry_fee} EGP`:""}</div>
       </div>
       <div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end;">
@@ -1032,7 +1033,8 @@ async function openTourney(id){
     // detail chips
     const chips=[];
     if(t.location)chips.push(`<div class="dchip">📍 <b>${esc(t.location)}</b></div>`);
-    if(t.match_datetime)chips.push(`<div class="dchip">🗓 <b>${formatDt(t.match_datetime)}</b></div>`);
+    if(t.match_datetime)chips.push(`<div class="dchip">🗓 Start: <b>${formatDt(t.match_datetime)}</b></div>`);
+    if(t.end_datetime)chips.push(`<div class="dchip">🏁 End: <b>${formatDt(t.end_datetime)}</b></div>`);
     if(t.entry_fee)chips.push(`<div class="dchip">💰 Entry: <b>${t.entry_fee} EGP</b></div>`);
     if(t.prize)chips.push(`<div class="dchip">🥇 1st: <b>${esc(t.prize)}</b></div>`);
     if(t.prize_2nd)chips.push(`<div class="dchip">🥈 2nd: <b>${esc(t.prize_2nd)}</b></div>`);
@@ -1512,6 +1514,7 @@ async function createTournament(){
   const body={name,status:"registration",
     location:document.getElementById("nt-loc").value.trim()||null,
     match_datetime:document.getElementById("nt-dt").value||null,
+      end_datetime:document.getElementById("nt-dt-end").value||null,
     entry_fee:parseInt(document.getElementById("nt-fee").value)||0,
     max_teams:parseInt(document.getElementById("nt-max").value)||16,
     prize:document.getElementById("nt-prize").value.trim()||null,
@@ -1519,7 +1522,7 @@ async function createTournament(){
     registration_form_url:document.getElementById("nt-form").value.trim()||null,
   };
   try{await db.post("tournaments",body);
-    ["nt-name","nt-loc","nt-dt","nt-fee","nt-prize","nt-prize2","nt-form"].forEach(id=>{document.getElementById(id).value="";});
+    ["nt-name","nt-loc","nt-dt","nt-dt-end","nt-fee","nt-prize","nt-prize2","nt-form"].forEach(id=>{document.getElementById(id).value="";});
     document.getElementById("nt-max").value="16";
     toast("Tournament created!");await loadAdminData();
   }catch(e){toast("Error: "+e.message,"err");}
@@ -1598,7 +1601,8 @@ async function openEditTourney(id){
     <div class="form-group"><label class="form-label">Name</label><input type="text" id="et-name" value="${esc(t.name)}"></div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Location</label><input type="text" id="et-loc" value="${esc(t.location||"")}"></div>
-      <div class="form-group"><label class="form-label">Date & Time</label><input type="datetime-local" id="et-dt" value="${t.match_datetime?t.match_datetime.slice(0,16):""}"></div>
+      <div class="form-group"><label class="form-label">Start Time</label><input type="datetime-local" id="et-dt" value="${t.match_datetime?t.match_datetime.slice(0,16):''}"></div>
+      <div class="form-group"><label class="form-label">End Time</label><input type="datetime-local" id="et-dt-end" value="${t.end_datetime?t.end_datetime.slice(0,16):''}"></div>
     </div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Entry Fee (EGP)</label><input type="number" id="et-fee" value="${t.entry_fee||0}"></div>
@@ -1627,6 +1631,7 @@ async function saveTournament(){
       await db.patch("tournaments",`id=eq.${curEditTourney.id}`,{
         name,location:document.getElementById("et-loc").value.trim()||null,
         match_datetime:document.getElementById("et-dt").value||null,
+        end_datetime:document.getElementById("et-dt-end").value||null,
         entry_fee:parseInt(document.getElementById("et-fee").value)||0,
         max_teams:parseInt(document.getElementById("et-max").value)||16,
         prize:document.getElementById("et-prize").value.trim()||null,
@@ -1639,6 +1644,7 @@ async function saveTournament(){
       await db.patch("tournaments",`id=eq.${curEditTourney.id}`,{
         name,location:document.getElementById("et-loc").value.trim()||null,
         match_datetime:document.getElementById("et-dt").value||null,
+        end_datetime:document.getElementById("et-dt-end").value||null,
         entry_fee:parseInt(document.getElementById("et-fee").value)||0,
         max_teams:parseInt(document.getElementById("et-max").value)||16,
         prize:document.getElementById("et-prize").value.trim()||null,
@@ -2166,7 +2172,7 @@ function selectPartner(id,name,phone,el){
   if(search)search.style.display='none';
   const results=document.getElementById('rm-p2-results');
   if(results)results.style.display='none';
-  if(phone){const ph2=document.getElementById('rm-ph2');if(ph2&&!ph2.value)ph2.value=phone;}
+  if(phone){const ph2=document.getElementById('rm-ph2');if(ph2)ph2.value=phone;}
 }
 function clearPartnerSelection(){
   document.getElementById('rm-p2').value='';
@@ -2421,7 +2427,8 @@ async function saveEditPlayer(){
 // ── UTILS ─────────────────────────────────────────────────────────────
 function esc(s){const d=document.createElement("div");d.textContent=String(s||"");return d.innerHTML;}
 function formatDate(d){return d?new Date(d).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}):""}
-function formatDt(d){if(!d)return"";const dt=new Date(d);return dt.toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})+" "+dt.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"});}
+function formatDt(d){if(!d)return"";const dt=new Date(d);return dt.toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})+" "+dt.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit",hour12:true});}
+function formatTime(d){if(!d)return"";return new Date(d).toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit",hour12:true});}
 function stageName(s){return{group:"Group Match",quarter_final:"Quarter Final",semi_final:"Semi Final",final:"Final"}[s]||s;}
 
 // ── INIT ──────────────────────────────────────────────────────────────
