@@ -468,8 +468,12 @@ td.tn{font-weight:500;}
       <div class="form-group"><label class="form-label">Tournament Name</label><input type="text" id="nt-name" placeholder="e.g. Padel Addicts Open — Summer 2026"></div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Location</label><input type="text" id="nt-loc" placeholder="e.g. New Cairo Courts"></div>
-        <div class="form-group"><label class="form-label">Start Time</label><input type="datetime-local" id="nt-dt"></div>
-        <div class="form-group"><label class="form-label">End Time</label><input type="datetime-local" id="nt-dt-end"></div>
+        <div class="form-group"><label class="form-label">Start Date</label><input type="text" id="nt-dt-date" placeholder="DD/MM/YYYY"></div>
+        <div class="form-group"><label class="form-label">Start Time</label><input type="text" id="nt-dt-time" placeholder="HH:MM (24h)"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">End Date</label><input type="text" id="nt-dt-end-date" placeholder="DD/MM/YYYY"></div>
+        <div class="form-group"><label class="form-label">End Time</label><input type="text" id="nt-dt-end-time" placeholder="HH:MM (24h)"></div>
       </div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Entry Fee (EGP)</label><input type="number" id="nt-fee" placeholder="0"></div>
@@ -1511,22 +1515,65 @@ async function refreshAdminTeams(){
   </div>`).join("");
 }
 
+// ── DATE/TIME PARSING HELPER ──────────────────────────────────────────
+// Accepts date as DD/MM/YYYY and time as HH:MM, returns ISO string or null
+function parseDateTimeManual(dateStr, timeStr){
+  const d=(dateStr||"").trim();
+  const t=(timeStr||"").trim();
+  if(!d)return null;
+  // Accept DD/MM/YYYY or DD-MM-YYYY
+  const dParts=d.split(/[\/\-]/);
+  if(dParts.length!==3)return null;
+  const [dd,mm,yyyy]=dParts;
+  const [hh="00",min="00"]=(t||"00:00").split(":");
+  // Build as a local Cairo time string then store as-is (no timezone conversion)
+  const isoStr=`${yyyy.padStart(4,"0")}-${mm.padStart(2,"0")}-${dd.padStart(2,"0")}T${hh.padStart(2,"0")}:${min.padStart(2,"0")}:00`;
+  // Validate it's a real date
+  const check=new Date(isoStr);
+  if(isNaN(check.getTime()))return null;
+  return isoStr;
+}
+// Convert stored ISO/datetime string back to DD/MM/YYYY for display in text input
+function isoToDDMMYYYY(iso){
+  if(!iso)return"";
+  // Take only the date part (first 10 chars: YYYY-MM-DD)
+  const datePart=iso.slice(0,10);
+  const [yyyy,mm,dd]=datePart.split("-");
+  if(!yyyy||!mm||!dd)return"";
+  return`${dd}/${mm}/${yyyy}`;
+}
+// Convert stored ISO/datetime string back to HH:MM for display in text input
+function isoToHHMM(iso){
+  if(!iso)return"";
+  // Time part starts at index 11: HH:MM
+  const timePart=iso.slice(11,16);
+  return timePart||"";
+}
+
 // ── CREATE TOURNAMENT ─────────────────────────────────────────────────
 async function createTournament(){
   const name=document.getElementById("nt-name").value.trim();
   if(!name){toast("Enter a tournament name","err");return;}
+  const startDt=parseDateTimeManual(
+    document.getElementById("nt-dt-date").value,
+    document.getElementById("nt-dt-time").value
+  );
+  const endDt=parseDateTimeManual(
+    document.getElementById("nt-dt-end-date").value,
+    document.getElementById("nt-dt-end-time").value
+  );
   const body={name,status:"registration",
     location:document.getElementById("nt-loc").value.trim()||null,
-    match_datetime:document.getElementById("nt-dt").value||null,
-      end_datetime:document.getElementById("nt-dt-end").value||null,
+    match_datetime:startDt,
+    end_datetime:endDt,
     entry_fee:parseInt(document.getElementById("nt-fee").value)||0,
     max_teams:parseInt(document.getElementById("nt-max").value)||16,
     prize:document.getElementById("nt-prize").value.trim()||null,
-      prize_2nd:document.getElementById("nt-prize2").value.trim()||null,
+    prize_2nd:document.getElementById("nt-prize2").value.trim()||null,
     registration_form_url:document.getElementById("nt-form").value.trim()||null,
   };
   try{await db.post("tournaments",body);
-    ["nt-name","nt-loc","nt-dt","nt-dt-end","nt-fee","nt-prize","nt-prize2","nt-form"].forEach(id=>{document.getElementById(id).value="";});
+    ["nt-name","nt-loc","nt-dt-date","nt-dt-time","nt-dt-end-date","nt-dt-end-time","nt-fee","nt-prize","nt-prize2","nt-form"].forEach(id=>{document.getElementById(id).value="";});
     document.getElementById("nt-max").value="16";
     toast("Tournament created!");await loadAdminData();
   }catch(e){toast("Error: "+e.message,"err");}
@@ -1605,8 +1652,12 @@ async function openEditTourney(id){
     <div class="form-group"><label class="form-label">Name</label><input type="text" id="et-name" value="${esc(t.name)}"></div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Location</label><input type="text" id="et-loc" value="${esc(t.location||"")}"></div>
-      <div class="form-group"><label class="form-label">Start Time</label><input type="datetime-local" id="et-dt" value="${t.match_datetime?t.match_datetime.slice(0,16):''}"></div>
-      <div class="form-group"><label class="form-label">End Time</label><input type="datetime-local" id="et-dt-end" value="${t.end_datetime?t.end_datetime.slice(0,16):''}"></div>
+      <div class="form-group"><label class="form-label">Start Date</label><input type="text" id="et-dt-date" placeholder="DD/MM/YYYY" value="${t.match_datetime?isoToDDMMYYYY(t.match_datetime):''}"></div>
+      <div class="form-group"><label class="form-label">Start Time</label><input type="text" id="et-dt-time" placeholder="HH:MM (24h)" value="${t.match_datetime?isoToHHMM(t.match_datetime):''}"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">End Date</label><input type="text" id="et-dt-end-date" placeholder="DD/MM/YYYY" value="${t.end_datetime?isoToDDMMYYYY(t.end_datetime):''}"></div>
+      <div class="form-group"><label class="form-label">End Time</label><input type="text" id="et-dt-end-time" placeholder="HH:MM (24h)" value="${t.end_datetime?isoToHHMM(t.end_datetime):''}"></div>
     </div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Entry Fee (EGP)</label><input type="number" id="et-fee" value="${t.entry_fee||0}"></div>
@@ -1626,6 +1677,14 @@ async function openEditTourney(id){
 async function saveTournament(){
   const name=document.getElementById("et-name").value.trim();
   if(!name){toast("Enter a name","err");return;}
+  const startDt=parseDateTimeManual(
+    document.getElementById("et-dt-date").value,
+    document.getElementById("et-dt-time").value
+  );
+  const endDt=parseDateTimeManual(
+    document.getElementById("et-dt-end-date").value,
+    document.getElementById("et-dt-end-time").value
+  );
   try{
     const newVis=document.getElementById("et-vis")?.value||'public';
     // Save visibility locally (works even without a DB column)
@@ -1634,8 +1693,8 @@ async function saveTournament(){
     try{
       await db.patch("tournaments",`id=eq.${curEditTourney.id}`,{
         name,location:document.getElementById("et-loc").value.trim()||null,
-        match_datetime:document.getElementById("et-dt").value||null,
-        end_datetime:document.getElementById("et-dt-end").value||null,
+        match_datetime:startDt,
+        end_datetime:endDt,
         entry_fee:parseInt(document.getElementById("et-fee").value)||0,
         max_teams:parseInt(document.getElementById("et-max").value)||16,
         prize:document.getElementById("et-prize").value.trim()||null,
@@ -1647,8 +1706,8 @@ async function saveTournament(){
       // If visibility column doesn't exist, retry without it
       await db.patch("tournaments",`id=eq.${curEditTourney.id}`,{
         name,location:document.getElementById("et-loc").value.trim()||null,
-        match_datetime:document.getElementById("et-dt").value||null,
-        end_datetime:document.getElementById("et-dt-end").value||null,
+        match_datetime:startDt,
+        end_datetime:endDt,
         entry_fee:parseInt(document.getElementById("et-fee").value)||0,
         max_teams:parseInt(document.getElementById("et-max").value)||16,
         prize:document.getElementById("et-prize").value.trim()||null,
