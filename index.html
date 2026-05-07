@@ -1521,43 +1521,19 @@ function parseDateTimeManual(dateStr, timeStr){
   const d=(dateStr||"").trim();
   const t=(timeStr||"").trim();
   if(!d)return null;
-  const dParts=d.split(/[\/\-]/);
-  if(dParts.length!==3)return null;
-  const [dd,mm,yyyy]=dParts;
-  let hh="00",min="00";
-  if(t){
-    const m12=t.match(/^(\d{1,2}):(\d{2})\s*(AM|PM|am|pm)$/i);
-    const m24=t.match(/^(\d{1,2}):(\d{2})$/);
-    if(m12){
-      let h=parseInt(m12[1]);
-      min=m12[2];
-      const ampm=m12[3].toUpperCase();
-      if(ampm==="PM"&&h!==12)h+=12;
-      if(ampm==="AM"&&h===12)h=0;
-      hh=String(h).padStart(2,"0");
-    } else if(m24){
-      hh=m24[1].padStart(2,"0");
-      min=m24[2];
-    }
-  }
-  return `${yyyy.padStart(4,"0")}-${mm.padStart(2,"0")}-${dd.padStart(2,"0")}T${hh}:${min}:00`;
+  // Just return as plain text: "DD/MM/YYYY HH:MM AM/PM"
+  return `${d} ${t}`;
 }
 // Convert stored ISO/datetime string back to DD/MM/YYYY for display in text input
 function isoToDDMMYYYY(iso){
   if(!iso)return"";
-  const datePart=iso.slice(0,10);
-  const [yyyy,mm,dd]=datePart.split("-");
-  if(!yyyy||!mm||!dd)return"";
-  return`${dd}/${mm}/${yyyy}`;
+  // Just return as-is (stored as text "DD/MM/YYYY")
+  return iso;
 }
 function isoToHHMM(iso){
   if(!iso)return"";
-  const hh=parseInt(iso.slice(11,13));
-  const min=iso.slice(14,16);
-  if(isNaN(hh))return"";
-  const ampm=hh>=12?"PM":"AM";
-  const h12=hh%12||12;
-  return`${h12}:${min} ${ampm}`;
+  // Just return as-is (stored as text "HH:MM AM/PM")
+  return iso;
 }
 
 // ── CREATE TOURNAMENT ─────────────────────────────────────────────────
@@ -2512,20 +2488,19 @@ function _dtParts(d){
   return{yyyy,mm,dd,hh:hh||"00",min:min||"00"};
 }
 function formatDate(d){
-  const p=_dtParts(d);if(!p)return"";
-  return`${parseInt(p.dd)} ${_MONTHS[parseInt(p.mm)-1]} ${p.yyyy}`;
+  if(!d)return"";
+  // Just return as-is (stored as text)
+  return d;
 }
 function formatTime(d){
-  const p=_dtParts(d);if(!p||!p.hh)return"";
-  let h=parseInt(p.hh),min=p.min;
-  const ampm=h>=12?"PM":"AM";h=h%12||12;
-  return`${h}:${min} ${ampm}`;
+  if(!d)return"";
+  // Just return as-is (stored as text)
+  return d;
 }
 function formatDt(d){
-  const p=_dtParts(d);if(!p)return"";
-  let h=parseInt(p.hh),min=p.min;
-  const ampm=h>=12?"PM":"AM";h=h%12||12;
-  return`${parseInt(p.dd)} ${_MONTHS[parseInt(p.mm)-1]} ${p.yyyy} ${h}:${min} ${ampm}`;
+  if(!d)return"";
+  // Just return as-is (stored as text)
+  return d;
 }
 function stageName(s){return{group:"Group Match",quarter_final:"Quarter Final",semi_final:"Semi Final",final:"Final"}[s]||s;}
 
