@@ -469,11 +469,11 @@ td.tn{font-weight:500;}
       <div class="form-row">
         <div class="form-group"><label class="form-label">Location</label><input type="text" id="nt-loc" placeholder="e.g. New Cairo Courts"></div>
         <div class="form-group"><label class="form-label">Start Date</label><input type="text" id="nt-dt-date" placeholder="DD/MM/YYYY"></div>
-        <div class="form-group"><label class="form-label">Start Time</label><input type="text" id="nt-dt-time" placeholder="HH:MM (24h)"></div>
+        <div class="form-group"><label class="form-label">Start Time</label><input type="text" id="nt-dt-time" placeholder="e.g. 6:30 PM"></div>
       </div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">End Date</label><input type="text" id="nt-dt-end-date" placeholder="DD/MM/YYYY"></div>
-        <div class="form-group"><label class="form-label">End Time</label><input type="text" id="nt-dt-end-time" placeholder="HH:MM (24h)"></div>
+        <div class="form-group"><label class="form-label">End Time</label><input type="text" id="nt-dt-end-time" placeholder="e.g. 6:30 PM"></div>
       </div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Entry Fee (EGP)</label><input type="number" id="nt-fee" placeholder="0"></div>
@@ -1521,13 +1521,26 @@ function parseDateTimeManual(dateStr, timeStr){
   const d=(dateStr||"").trim();
   const t=(timeStr||"").trim();
   if(!d)return null;
-  // Accept DD/MM/YYYY or DD-MM-YYYY
   const dParts=d.split(/[\/\-]/);
   if(dParts.length!==3)return null;
   const [dd,mm,yyyy]=dParts;
-  const [hh="00",min="00"]=(t||"00:00").split(":");
-  // Store as plain text with no timezone offset
-  return `${yyyy.padStart(4,"0")}-${mm.padStart(2,"0")}-${dd.padStart(2,"0")}T${hh.padStart(2,"0")}:${min.padStart(2,"0")}:00`;
+  let hh="00",min="00";
+  if(t){
+    const m12=t.match(/^(\d{1,2}):(\d{2})\s*(AM|PM|am|pm)$/i);
+    const m24=t.match(/^(\d{1,2}):(\d{2})$/);
+    if(m12){
+      let h=parseInt(m12[1]);
+      min=m12[2];
+      const ampm=m12[3].toUpperCase();
+      if(ampm==="PM"&&h!==12)h+=12;
+      if(ampm==="AM"&&h===12)h=0;
+      hh=String(h).padStart(2,"0");
+    } else if(m24){
+      hh=m24[1].padStart(2,"0");
+      min=m24[2];
+    }
+  }
+  return `${yyyy.padStart(4,"0")}-${mm.padStart(2,"0")}-${dd.padStart(2,"0")}T${hh}:${min}:00`;
 }
 // Convert stored ISO/datetime string back to DD/MM/YYYY for display in text input
 function isoToDDMMYYYY(iso){
@@ -1539,7 +1552,12 @@ function isoToDDMMYYYY(iso){
 }
 function isoToHHMM(iso){
   if(!iso)return"";
-  return iso.slice(11,16);
+  const hh=parseInt(iso.slice(11,13));
+  const min=iso.slice(14,16);
+  if(isNaN(hh))return"";
+  const ampm=hh>=12?"PM":"AM";
+  const h12=hh%12||12;
+  return`${h12}:${min} ${ampm}`;
 }
 
 // ── CREATE TOURNAMENT ─────────────────────────────────────────────────
@@ -1645,11 +1663,11 @@ async function openEditTourney(id){
     <div class="form-row">
       <div class="form-group"><label class="form-label">Location</label><input type="text" id="et-loc" value="${esc(t.location||"")}"></div>
       <div class="form-group"><label class="form-label">Start Date</label><input type="text" id="et-dt-date" placeholder="DD/MM/YYYY" value="${t.match_datetime?isoToDDMMYYYY(t.match_datetime):''}"></div>
-      <div class="form-group"><label class="form-label">Start Time</label><input type="text" id="et-dt-time" placeholder="HH:MM (24h)" value="${t.match_datetime?isoToHHMM(t.match_datetime):''}"></div>
+      <div class="form-group"><label class="form-label">Start Time</label><input type="text" id="et-dt-time" placeholder="e.g. 6:30 PM" value="${t.match_datetime?isoToHHMM(t.match_datetime):''}"></div>
     </div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">End Date</label><input type="text" id="et-dt-end-date" placeholder="DD/MM/YYYY" value="${t.end_datetime?isoToDDMMYYYY(t.end_datetime):''}"></div>
-      <div class="form-group"><label class="form-label">End Time</label><input type="text" id="et-dt-end-time" placeholder="HH:MM (24h)" value="${t.end_datetime?isoToHHMM(t.end_datetime):''}"></div>
+      <div class="form-group"><label class="form-label">End Time</label><input type="text" id="et-dt-end-time" placeholder="e.g. 6:30 PM" value="${t.end_datetime?isoToHHMM(t.end_datetime):''}"></div>
     </div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Entry Fee (EGP)</label><input type="number" id="et-fee" value="${t.entry_fee||0}"></div>
