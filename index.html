@@ -1526,28 +1526,20 @@ function parseDateTimeManual(dateStr, timeStr){
   if(dParts.length!==3)return null;
   const [dd,mm,yyyy]=dParts;
   const [hh="00",min="00"]=(t||"00:00").split(":");
-  // Build as a local Cairo time string then store as-is (no timezone conversion)
-  const isoStr=`${yyyy.padStart(4,"0")}-${mm.padStart(2,"0")}-${dd.padStart(2,"0")}T${hh.padStart(2,"0")}:${min.padStart(2,"0")}:00`;
-  // Validate it's a real date
-  const check=new Date(isoStr);
-  if(isNaN(check.getTime()))return null;
-  return isoStr;
+  // Store as plain text with no timezone offset
+  return `${yyyy.padStart(4,"0")}-${mm.padStart(2,"0")}-${dd.padStart(2,"0")}T${hh.padStart(2,"0")}:${min.padStart(2,"0")}:00`;
 }
 // Convert stored ISO/datetime string back to DD/MM/YYYY for display in text input
 function isoToDDMMYYYY(iso){
   if(!iso)return"";
-  // Take only the date part (first 10 chars: YYYY-MM-DD)
   const datePart=iso.slice(0,10);
   const [yyyy,mm,dd]=datePart.split("-");
   if(!yyyy||!mm||!dd)return"";
   return`${dd}/${mm}/${yyyy}`;
 }
-// Convert stored ISO/datetime string back to HH:MM for display in text input
 function isoToHHMM(iso){
   if(!iso)return"";
-  // Time part starts at index 11: HH:MM
-  const timePart=iso.slice(11,16);
-  return timePart||"";
+  return iso.slice(11,16);
 }
 
 // ── CREATE TOURNAMENT ─────────────────────────────────────────────────
@@ -2491,31 +2483,31 @@ async function saveEditPlayer(){
 function esc(s){const d=document.createElement("div");d.textContent=String(s||"");return d.innerHTML;}
 // Parse stored datetime string directly without any timezone conversion.
 // Stored values are plain local strings like "2026-06-15T18:00:00".
-function _parseDtLocal(d){
+const _MONTHS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+function _dtParts(d){
+  // Just slice the stored string - no Date object, no timezone shift
   if(!d)return null;
-  // Strip trailing Z or timezone offset so JS doesn't shift it
-  const clean=String(d).replace(/Z|[+-]\d{2}:\d{2}$/,"");
-  const dt=new Date(clean);
-  return isNaN(dt.getTime())?null:dt;
+  const s=String(d);
+  const yyyy=s.slice(0,4),mm=s.slice(5,7),dd=s.slice(8,10);
+  const hh=s.slice(11,13),min=s.slice(14,16);
+  if(!yyyy||!mm||!dd)return null;
+  return{yyyy,mm,dd,hh:hh||"00",min:min||"00"};
 }
-function formatDt(d){
-  const dt=_parseDtLocal(d);if(!dt)return"";
-  const months=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-  const day=dt.getDate(),mon=months[dt.getMonth()],yr=dt.getFullYear();
-  let h=dt.getHours(),min=String(dt.getMinutes()).padStart(2,"0");
-  const ampm=h>=12?"PM":"AM";h=h%12||12;
-  return`${day} ${mon} ${yr} ${h}:${min} ${ampm}`;
+function formatDate(d){
+  const p=_dtParts(d);if(!p)return"";
+  return`${parseInt(p.dd)} ${_MONTHS[parseInt(p.mm)-1]} ${p.yyyy}`;
 }
 function formatTime(d){
-  const dt=_parseDtLocal(d);if(!dt)return"";
-  let h=dt.getHours(),min=String(dt.getMinutes()).padStart(2,"0");
+  const p=_dtParts(d);if(!p||!p.hh)return"";
+  let h=parseInt(p.hh),min=p.min;
   const ampm=h>=12?"PM":"AM";h=h%12||12;
   return`${h}:${min} ${ampm}`;
 }
-function formatDate(d){
-  const dt=_parseDtLocal(d);if(!dt)return"";
-  const months=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-  return`${dt.getDate()} ${months[dt.getMonth()]} ${dt.getFullYear()}`;
+function formatDt(d){
+  const p=_dtParts(d);if(!p)return"";
+  let h=parseInt(p.hh),min=p.min;
+  const ampm=h>=12?"PM":"AM";h=h%12||12;
+  return`${parseInt(p.dd)} ${_MONTHS[parseInt(p.mm)-1]} ${p.yyyy} ${h}:${min} ${ampm}`;
 }
 function stageName(s){return{group:"Group Match",quarter_final:"Quarter Final",semi_final:"Semi Final",final:"Final"}[s]||s;}
 
