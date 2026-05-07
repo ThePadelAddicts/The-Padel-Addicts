@@ -2546,6 +2546,7 @@ async function init(){
   await restoreSession();
   await loadAll();
   renderNavRight();
+  if(isAdmin){ populateAdminSelects(); refreshAdminTeams(); loadPendingRegs(); renderAdminPlayersList(); if(allTourneys.length)loadManage(); }
   document.getElementById("loader").style.display="none";
 }
 init();
